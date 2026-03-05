@@ -65,19 +65,19 @@ print(autoencoder.summary())
 
 # Data loading
 if envir == 'indoor':
-    mat = sio.loadmat('data/DATA_Htrainin.mat') 
+    mat = sio.loadmat('/Users/luxian/DataSpace/csinet/data/DATA_Htrainin.mat') 
     x_train = mat['HT'] # array
-    mat = sio.loadmat('data/DATA_Hvalin.mat')
+    mat = sio.loadmat('/Users/luxian/DataSpace/csinet/data/DATA_Hvalin.mat')
     x_val = mat['HT'] # array
-    mat = sio.loadmat('data/DATA_Htestin.mat')
+    mat = sio.loadmat('/Users/luxian/DataSpace/csinet/data/DATA_Htestin.mat')
     x_test = mat['HT'] # array
 
 elif envir == 'outdoor':
-    mat = sio.loadmat('data/DATA_Htrainout.mat') 
+    mat = sio.loadmat('/Users/luxian/DataSpace/csinet/data/DATA_Htrainout.mat') 
     x_train = mat['HT'] # array
-    mat = sio.loadmat('data/DATA_Hvalout.mat')
+    mat = sio.loadmat('/Users/luxian/DataSpace/csinet/data/DATA_Hvalout.mat')
     x_val = mat['HT'] # array
-    mat = sio.loadmat('data/DATA_Htestout.mat')
+    mat = sio.loadmat('/Users/luxian/DataSpace/csinet/data/DATA_Htestout.mat')
     x_test = mat['HT'] # array
 
 x_train = x_train.astype('float32')

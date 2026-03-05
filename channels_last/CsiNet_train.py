@@ -70,19 +70,19 @@ print(autoencoder.summary())
 
 # Data loading
 if envir == 'indoor':
-    mat = sio.loadmat('data/DATA_Htrainin.mat') 
+    mat = sio.loadmat('/Users/luxian/DataSpace/csinet/data/DATA_Htrainin.mat') 
     x_train = mat['HT'] # array
-    mat = sio.loadmat('data/DATA_Hvalin.mat')
+    mat = sio.loadmat('/Users/luxian/DataSpace/csinet/data/DATA_Hvalin.mat')
     x_val = mat['HT'] # array
-    mat = sio.loadmat('data/DATA_Htestin.mat')
+    mat = sio.loadmat('/Users/luxian/DataSpace/csinet/data/DATA_Htestin.mat')
     x_test = mat['HT'] # array
 
 elif envir == 'outdoor':
-    mat = sio.loadmat('data/DATA_Htrainout.mat') 
+    mat = sio.loadmat('/Users/luxian/DataSpace/csinet/data/DATA_Htrainout.mat') 
     x_train = mat['HT'] # array
-    mat = sio.loadmat('data/DATA_Hvalout.mat')
+    mat = sio.loadmat('/Users/luxian/DataSpace/csinet/data/DATA_Hvalout.mat')
     x_val = mat['HT'] # array
-    mat = sio.loadmat('data/DATA_Htestout.mat')
+    mat = sio.loadmat('/Users/luxian/DataSpace/csinet/data/DATA_Htestout.mat')
     x_test = mat['HT'] # array
 
 x_train = x_train.astype('float32')
@@ -143,11 +143,11 @@ print ("It cost %f sec" % ((tEnd - tStart)/x_test.shape[0]))
 
 # Calculating the NMSE and rho
 if envir == 'indoor':
-    mat = sio.loadmat('data/DATA_HtestFin_all.mat')
+    mat = sio.loadmat('/Users/luxian/DataSpace/csinet/data/DATA_HtestFin_all.mat')
     X_test = mat['HF_all']# array
 
 elif envir == 'outdoor':
-    mat = sio.loadmat('data/DATA_HtestFout_all.mat')
+    mat = sio.loadmat('/Users/luxian/DataSpace/csinet/data/DATA_HtestFout_all.mat')
     X_test = mat['HF_all']# array
 
 X_test = np.reshape(X_test, (len(X_test), img_height, 125))
