@@ -147,7 +147,6 @@ class QuantumCompensationBlock(nn.Module):
 # ==================== CsiNet编码器 ====================
 class CsiNetEncoder(nn.Module):
     """
-    论文1中的CsiNet编码器部分
     将32×32×2的信道矩阵压缩为低维码字
     """
     def __init__(self, encoded_dim):
