@@ -27,7 +27,7 @@ compression_rates = {
     1/32: 64,    # 64/2048 = 1/32
     1/64: 32     # 32/2048 = 1/64
 }
-encoded_dim = 512  # 默认1/4压缩率
+encoded_dim = 32 
 
 # 训练参数
 initial_lr = 5e-3
@@ -286,7 +286,7 @@ class CsiNetQuantumCompensated(nn.Module):
 
 
 # ==================== 数据加载（论文1的数据集） ====================
-def load_data(envir='indoor', data_path='/Users/luxian/DataSpace/csinet/data'):
+def load_data(envir='indoor', data_path='/home/luxian/DataSpace/csinet/data'):
     """
     加载论文1中的数据集
     """
@@ -450,7 +450,7 @@ def train_model(model, train_loader, val_loader, epochs=100, lr=5e-3, device='cp
 # ==================== 主程序 ====================
 def main():
     # 加载数据
-    x_train, x_val, x_test, X_test_freq = load_data(envir, data_path='/Users/luxian/DataSpace/csinet/data')
+    x_train, x_val, x_test, X_test_freq = load_data(envir, data_path='/home/luxian/DataSpace/csinet/data')
     
     # 转换为PyTorch张量
     x_train = torch.FloatTensor(x_train)
