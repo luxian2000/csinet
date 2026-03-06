@@ -27,18 +27,19 @@ compression_rates = {
     1/32: 64,    # 64/2048 = 1/32
     1/64: 32     # 32/2048 = 1/64
 }
-encoded_dim = 32 
+encoded_dim = 512  # 默认1/4压缩率
 
 # 训练参数
 initial_lr = 5e-3
-batch_size = 4  # Reduced for testing
-epochs = 1  # Just test one epoch
+batch_size = 200
+epochs = 100
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
-# ==================== 量子补偿模块 ====================
+# ==================== 量子补偿模块（论文2） ====================
 class QuantumCompensationBlock(nn.Module):
     """
+    基于论文2的量子补偿模块
     使用4量子比特，2×2窗口滑动处理
     """
     def __init__(self, n_qubits=4, n_layers=2, window_size=2):
@@ -60,95 +61,85 @@ class QuantumCompensationBlock(nn.Module):
         @qml.qnode(self.dev, interface='torch', diff_method='parameter-shift')
         def quantum_circuit(inputs, weights_crz, weights_ry):
             """
-            inputs: vector of length 4 (values for 2×2 window)
-            weights_crz: CRZ gate parameters
-            weights_ry: RY gate parameters
+            inputs: 长度为4的向量（2×2窗口的4个值）
+            weights_crz: CRZ门参数
+            weights_ry: RY门参数
             """
-            # Ensure inputs is 1D
-            if inputs.dim() == 2:
-                inputs = inputs.squeeze(0)
-            
-            # Embedding layer: H gate + RY(input data)
+            # 嵌入层: H门 + RY(输入数据)
             for i in range(n_qubits):
                 qml.Hadamard(wires=i)
                 qml.RY(inputs[i], wires=i)
             
-            # Entanglement layer: multiple CRZ + RY
+            # 纠缠层: 多层CRZ + RY
             for layer in range(n_layers):
-                # CRZ entanglement (ring connection)
+                # CRZ纠缠（环形连接）
                 for i in range(n_qubits - 1):
                     qml.CRZ(weights_crz[layer, i], wires=[i, i+1])
-                # Last one connects to the first
+                # 最后一个与第一个纠缠
                 qml.CRZ(weights_crz[layer, n_qubits-1], wires=[n_qubits-1, 0])
                 
-                # RY phase adjustment
+                # RY相位调整
                 for i in range(n_qubits):
                     qml.RY(weights_ry[layer, i], wires=i)
             
-            # Measurement layer: measure PauliZ expectation value of each qubit
+            # 测量层: 测量每个量子比特的泡利Z期望值
             return [qml.expval(qml.PauliZ(i)) for i in range(n_qubits)]
         
         self.circuit = quantum_circuit
         
     def forward(self, x):
         """
-        x: Input feature map [batch, channels, height, width]
-        Returns: [batch, channels, height, width] (与输入形状相同)
+        x: 输入特征图 [batch, channels, height, width]
+        假设输入已经是下采样后的特征图
         """
         batch, ch, h, w = x.shape
-    
-        # 1. Unfold: 提取2x2窗口
+        
+        # 使用unfold提取2×2窗口
         unfold = nn.Unfold(kernel_size=self.window_size, stride=self.window_size)
-        patches_unfold = unfold(x)  # [batch, ch*4, num_patches]
-        num_patches = patches_unfold.shape[-1]
-    
-        # 2. Reshape 到 [batch, ch, 4, num_patches]
-        patches = patches_unfold.reshape(batch, ch, 4, num_patches)
-    
-        # 3. 批量处理所有 patches（避免循环）
-        # 准备输入数据: [batch, ch, num_patches, 4]
-        patches_input = patches.permute(0, 1, 3, 2)  # [batch, ch, num_patches, 4]
-    
-        # 应用tanh和pi缩放
-        patches_input = torch.tanh(patches_input) * np.pi  # [batch, ch, num_patches, 4]
-    
-        # 4. 批量应用量子电路
-        # 假设 self.circuit 可以处理批量输入，如果不能，需要修改circuit定义
-        # 这里我们 reshape 到 [batch*ch*num_patches, 4] 批量处理
-        flat_input = patches_input.reshape(-1, 4)  # [batch*ch*num_patches, 4]
-    
-        # 批量应用电路（假设circuit支持批量）
-        q_out_list = self.circuit(flat_input, self.weights_crz, self.weights_ry)
-        q_out = torch.stack(q_out_list)  # [batch*ch*num_patches, n_qubits]
-    
-        # 5. 重塑回 [batch, ch, num_patches, n_qubits]
-        compensated = q_out.reshape(batch, ch, num_patches, self.n_qubits)
-    
-        # 6. 重要：需要将 n_qubits 个输出合并回单个值
-        # 方法1：平均池化（最简单）
-        compensated = compensated.mean(dim=-1)  # [batch, ch, num_patches]
-    
-        # 方法2：如果 n_qubits == 4，可以直接 reshape
-        # if self.n_qubits == 4:
-        #     compensated = compensated.reshape(batch, ch, num_patches * 4)
-        # else:
-        #     # 需要其他合并策略，比如线性层
-        #     compensated = self.merge_layer(compensated)  # 定义一个线性层将 n_qubits -> 4
-    
-        # 7. 准备 Fold
-        # 需要将数据 reshape 回 unfold 的格式 [batch, ch*4, num_patches]
-        compensated = compensated.reshape(batch, ch * 4, num_patches)
-    
-        # 8. Fold 回原始尺寸
+        patches = unfold(x)  # [batch, ch*4, num_patches]
+        num_patches = patches.shape[-1]
+        
+        # 重塑为更易处理的形式 [batch, num_patches, ch, 4]
+        patches = patches.permute(0, 2, 1).reshape(batch, num_patches, ch, 4)
+        
+        # 对所有patches和通道应用量子电路（向量化处理）
+        # 将所有数据展平处理
+        total_samples = batch * num_patches * ch
+        all_inputs = patches.reshape(total_samples, 4)  # [batch*num_patches*ch, 4]
+        
+        # 归一化输入到[-π, π]范围
+        all_inputs = torch.tanh(all_inputs) * np.pi
+        
+        # 对每个输入应用量子电路
+        all_outputs = []
+        for i in range(total_samples):
+            input_data = all_inputs[i]
+            q_out = self.circuit(input_data, self.weights_crz, self.weights_ry)
+            all_outputs.append(torch.stack(q_out))  # [n_qubits]
+        
+        # 堆叠所有输出 [batch*num_patches*ch, n_qubits]
+        all_outputs = torch.stack(all_outputs, dim=0)
+        
+        # 重塑回 [batch, num_patches, ch, n_qubits]
+        all_outputs = all_outputs.reshape(batch, num_patches, ch, self.n_qubits)
+        
+        # 重塑为fold需要的格式 [batch, ch*n_qubits, num_patches]
+        all_outputs = all_outputs.permute(0, 2, 3, 1).reshape(batch, ch*self.n_qubits, num_patches)
+        
+        # 使用fold重组回特征图
         fold = nn.Fold(output_size=(h, w), kernel_size=self.window_size, stride=self.window_size)
-        output = fold(compensated)
-    
+        output = fold(all_outputs)
+        
+        # 转换为 float32 以匹配后续层的权重类型
+        output = output.float()
+        
         return output
 
 
-# ==================== CsiNet编码器 ====================
+# ==================== CsiNet编码器（论文1） ====================
 class CsiNetEncoder(nn.Module):
     """
+    论文1中的CsiNet编码器部分
     将32×32×2的信道矩阵压缩为低维码字
     """
     def __init__(self, encoded_dim):
@@ -175,7 +166,7 @@ class CsiNetEncoder(nn.Module):
         return x
 
 
-# ==================== 量子补偿解码器 ====================
+# ==================== 量子补偿解码器（混合架构） ====================
 class QuantumCompensatedDecoder(nn.Module):
     """
     量子补偿增强的解码器
@@ -199,7 +190,6 @@ class QuantumCompensatedDecoder(nn.Module):
             n_qubits=4, n_layers=2, window_size=2
         )
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
-        self.comp_adjust = nn.Conv2d(img_channels*4, img_channels, kernel_size=1)  # 量子补偿输出4通道/像素
         
         # 主路径：简单的特征提取
         self.main_conv = nn.Conv2d(img_channels, img_channels, kernel_size=3, padding=1)
@@ -226,31 +216,31 @@ class QuantumCompensatedDecoder(nn.Module):
     
     def forward(self, s):
         """
-        s: [batch, encoded_dim] compressed codeword
-        return: [batch, 2, 32, 32] reconstructed channel matrix
+        s: [batch, encoded_dim] 压缩后的码字
+        return: [batch, 2, 32, 32] 重建的信道矩阵
         """
         batch_size = s.shape[0]
         
-        # Generate initial feature map from codeword (functional upsampling)
+        # 从码字生成初始特征图（功能上的上采样）
         x = self.fc_decode(s)  # [batch, 2048]
         x = x.reshape(batch_size, img_channels, img_height, img_width)  # [batch, 2, 32, 32]
         
-        # ===== Main Path =====
+        # ===== 主路径 =====
         main_out = self.main_conv(x)
         main_out = self.main_bn(main_out)
         main_out = F.leaky_relu(main_out)
         
-        # ===== Compensation Path =====
-        # Downsample to 16×16
+        # ===== 补偿路径 =====
+        # 下采样到16×16
         comp = self.downsample(x)  # [batch, 2, 16, 16]
         
-        # Apply quantum compensation
-        comp = self.quantum_comp(comp)  # [batch, 8, 16, 16] (2 channels × 4 qubits)
+        # 应用量子补偿
+        comp = self.quantum_comp(comp)  # [batch, 2, 16, 16] 量子补偿保持形状不变
         
-        # Adjust channel number from 8 to 2
-        comp = self.comp_adjust(comp)  # [batch, 2, 16, 16]
+        # 确保类型一致（量子输出是 float64，需要转为 float32）
+        comp = comp.float()
         
-        # Upsample back to 32×32
+        # 上采样回32×32
         comp = self.upsample(comp)  # [batch, 2, 32, 32]
         
         # ===== 融合 =====
@@ -295,10 +285,10 @@ class CsiNetQuantumCompensated(nn.Module):
         return self.encoder(x)
 
 
-# ==================== 数据加载 ====================
+# ==================== 数据加载（论文1的数据集） ====================
 def load_data(envir='indoor', data_path='/Users/luxian/DataSpace/csinet/data'):
     """
-    加载论文 1 中的数据集
+    加载论文1中的数据集
     """
     print(f"Loading {envir} data...")
     
@@ -344,6 +334,10 @@ def load_data(envir='indoor', data_path='/Users/luxian/DataSpace/csinet/data'):
     x_val = preprocess_data(x_val)
     x_test = preprocess_data(x_test)
     
+    # 重塑频域数据为 [batch, height, width] 形式
+    # X_test_freq 原始形状 [batch, 4000] where 4000 = 32*125
+    X_test_freq = X_test_freq.reshape(-1, img_height, 125)
+    
     print(f"Train data shape: {x_train.shape}")
     print(f"Val data shape: {x_val.shape}")
     print(f"Test data shape: {x_test.shape}")
@@ -382,10 +376,10 @@ def calculate_nmse_rho(x_test, x_hat, X_test_freq, img_height=32, img_width=32):
     X_hat = X_hat[:, :, 0:125]
     
     # 计算余弦相似度
-    n1 = np.sqrt(np.sum(np.conj(X_test_freq) * X_test_freq, axis=1))
-    n2 = np.sqrt(np.sum(np.conj(X_hat) * X_hat, axis=1))
-    aa = np.abs(np.sum(np.conj(X_test_freq) * X_hat, axis=1))
-    rho = np.mean(aa / (n1 * n2 + 1e-10), axis=1)
+    n1 = np.sqrt(np.sum(np.abs(X_test_freq)**2, axis=(1, 2)))  # [batch] 对height和width求和
+    n2 = np.sqrt(np.sum(np.abs(X_hat)**2, axis=(1, 2)))        # [batch]
+    aa = np.abs(np.sum(np.conj(X_test_freq) * X_hat, axis=(1, 2)))  # [batch]
+    rho = aa / (n1 * n2 + 1e-10)  # [batch] 逐样本计算相似度
     
     # 计算NMSE
     power = np.sum(np.abs(x_test_C)**2, axis=1)
@@ -396,7 +390,7 @@ def calculate_nmse_rho(x_test, x_hat, X_test_freq, img_height=32, img_width=32):
 
 
 # ==================== 训练函数 ====================
-def train_model(model, train_loader, val_loader, epochs=100, lr=5e-3, device=torch.device('cpu')):
+def train_model(model, train_loader, val_loader, epochs=100, lr=5e-3, device='cpu'):
     """
     训练模型
     """
@@ -431,7 +425,7 @@ def train_model(model, train_loader, val_loader, epochs=100, lr=5e-3, device=tor
         model.eval()
         val_loss = 0.0
         with torch.no_grad():
-            for (data,) in val_loader:
+            for data in val_loader:
                 data = data.to(device)
                 output = model(data)
                 loss = criterion(output, data)
@@ -455,7 +449,7 @@ def train_model(model, train_loader, val_loader, epochs=100, lr=5e-3, device=tor
 
 # ==================== 主程序 ====================
 def main():
-    # Load data
+    # 加载数据
     x_train, x_val, x_test, X_test_freq = load_data(envir, data_path='/Users/luxian/DataSpace/csinet/data')
     
     # 转换为PyTorch张量
@@ -512,6 +506,7 @@ def main():
     # 计算NMSE和余弦相似度
     x_test_np = x_test.numpy()
     nmse, rho = calculate_nmse_rho(x_test_np, x_hat, X_test_freq)
+    rho = np.mean(rho)  # 取所有样本相似度的平均值
     
     print(f"\nResults for {envir} environment:")
     print(f"Compression ratio: {encoded_dim/img_total:.4f} (dim={encoded_dim})")
