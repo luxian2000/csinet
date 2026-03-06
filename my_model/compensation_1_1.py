@@ -394,7 +394,7 @@ def calculate_nmse_rho(x_test, x_hat, X_test_freq, img_height=32, img_width=32):
 
 
 # ==================== 训练函数 ====================
-def train_model(model, train_loader, val_loader, epochs=100, lr=5e-3, device='cpu'):
+def train_model(model, train_loader, val_loader, epochs=100, lr=5e-3, device=torch.device('cpu')):
     """
     训练模型
     """
