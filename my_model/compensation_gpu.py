@@ -5,6 +5,11 @@ from pathlib import Path
 
 import numpy as np
 import pennylane as qml
+try:
+    # optional GPU-accelerated Lightning device (if installed with CUDA support)
+    from pennylane_lightning.lightning_gpu import LightningGPU
+except Exception:
+    LightningGPU = None
 import scipy.io as sio
 import torch
 import torch.nn as nn
@@ -41,28 +46,40 @@ class QuantumCompensationBlock(nn.Module):
         self.n_qubits = n_qubits
         self.n_layers = n_layers
         self.window_size = window_size
+        if n_qubits != window_size * window_size:
+            raise ValueError("n_qubits must equal window_size*window_size for fold/unfold reconstruction.")
 
         self.weights_crz = nn.Parameter(torch.randn(n_layers, n_qubits) * 0.1)
         self.weights_ry = nn.Parameter(torch.randn(n_layers, n_qubits) * 0.1)
 
-        # 优先尝试更快后端，失败则回退。
+        # 优先尝试 GPU 加速的 lightning（如果可用），失败则回退到 lightning.qubit / default.qubit
         self.backend = None
         self.dev = None
-        for backend in ("lightning.qubit", "default.qubit"):
+        if LightningGPU is not None:
             try:
-                self.dev = qml.device(backend, wires=n_qubits)
-                self.backend = backend
-                break
+                # 启用 batch_obs 以便 qnode 接受批量输入并由设备批量处理
+                self.dev = LightningGPU(wires=n_qubits, batch_obs=True)
+                self.backend = "lightning.gpu"
             except Exception:
-                continue
+                self.dev = None
+
+        if self.dev is None:
+            for backend in ("lightning.qubit", "default.qubit"):
+                try:
+                    self.dev = qml.device(backend, wires=n_qubits)
+                    self.backend = backend
+                    break
+                except Exception:
+                    continue
+
         if self.dev is None:
             raise RuntimeError("No available PennyLane simulator backend found.")
 
-        @qml.qnode(self.dev, interface="torch", diff_method="parameter-shift")
+        @qml.qnode(self.dev, interface="torch", diff_method="adjoint")
         def quantum_circuit(inputs, weights_crz, weights_ry):
             for i in range(n_qubits):
                 qml.Hadamard(wires=i)
-                qml.RY(inputs[i], wires=i)
+                qml.RY(inputs[..., i], wires=i)
 
             for layer in range(n_layers):
                 for i in range(n_qubits - 1):
@@ -77,34 +94,66 @@ class QuantumCompensationBlock(nn.Module):
         self.circuit = quantum_circuit
 
     def forward(self, x):
-        # x: [batch, channels, height, width]
-        batch, ch, h, w = x.shape
+        # x: [batch, encoded_dim]
+        if x.dim() != 2:
+            raise ValueError(f"QuantumCompensationBlock expects 2D latent input [B, D], got shape={tuple(x.shape)}")
+
+        batch, dim = x.shape
+        latent_h = 4
+        if dim % latent_h != 0:
+            raise ValueError(f"encoded dim must be divisible by {latent_h}, got {dim}")
+        latent_w = dim // latent_h
+        if latent_w % self.window_size != 0:
+            raise ValueError(f"latent width {latent_w} must be divisible by window_size {self.window_size}")
+
         original_device = x.device
 
-        # 量子线路当前在 CPU 仿真执行，因此在量子路径转换到 CPU。
-        x_cpu = x.to("cpu")
+        x_map = x.reshape(batch, 1, latent_h, latent_w)
+        # 如果后端支持 GPU（例如 lightning.gpu），则在对应设备上执行量子电路；
+        # 否则将数据移动到 CPU 进行仿真。
+        use_gpu_quantum = (self.backend is not None) and ("gpu" in str(self.backend))
+        x_proc = x_map if use_gpu_quantum else x_map.to("cpu")
 
-        unfold = nn.Unfold(kernel_size=self.window_size, stride=self.window_size)
-        patches = unfold(x_cpu)  # [batch, ch*4, num_patches]
+        unfold = nn.Unfold(kernel_size=self.window_size, stride=self.window_size).to(x_proc.device)
+        patches = unfold(x_proc)  # [batch, 4, num_patches]
         num_patches = patches.shape[-1]
 
-        patches = patches.permute(0, 2, 1).reshape(batch, num_patches, ch, 4)
-        total_samples = batch * num_patches * ch
-        all_inputs = patches.reshape(total_samples, 4)
+        total_samples = batch * num_patches
+        all_inputs = patches.permute(0, 2, 1).reshape(total_samples, self.n_qubits)
         all_inputs = torch.tanh(all_inputs) * np.pi
 
         all_outputs = []
-        for i in range(total_samples):
-            q_out = self.circuit(all_inputs[i], self.weights_crz, self.weights_ry)
-            all_outputs.append(torch.stack(q_out))
+        # 尝试批量调用 qnode。若设备/接口支持批量输入（例如 LightningGPU + batch_obs=True），
+        # 可以一次性传入 shape=(B, n_qubits) 的张量并返回 shape=(B, n_qubits) 的结果。
+        # 为了兼容不同后端，同时按块处理以控制内存。
+        chunk_size = 256
+        for start in range(0, total_samples, chunk_size):
+            end = min(total_samples, start + chunk_size)
+            batch_inp = all_inputs[start:end]
+            if use_gpu_quantum and hasattr(self.weights_crz, 'device'):
+                batch_inp = batch_inp.to(self.weights_crz.device)
 
-        all_outputs = torch.stack(all_outputs, dim=0)
-        all_outputs = all_outputs.reshape(batch, num_patches, ch, self.n_qubits)
-        all_outputs = all_outputs.permute(0, 2, 3, 1).reshape(batch, ch * self.n_qubits, num_patches)
+            q_out = self.circuit(batch_inp, self.weights_crz, self.weights_ry)
 
-        fold = nn.Fold(output_size=(h, w), kernel_size=self.window_size, stride=self.window_size)
+            # q_out 可能是 list-of-tensors (每个元素长度=batch) 或者 tensor (batch, n_qubits)
+            if isinstance(q_out, (list, tuple)):
+                # 转成 tensor (batch, n_qubits)
+                q_out = torch.stack([o if isinstance(o, torch.Tensor) else torch.tensor(o) for o in q_out], dim=1)
+            else:
+                # 若 q_out 是 tensor，确保维度为 (batch, n_qubits)
+                if q_out.dim() == 1:
+                    q_out = q_out.unsqueeze(1)
+                elif q_out.dim() == 2 and q_out.shape[0] == self.n_qubits and q_out.shape[1] == (end - start):
+                    q_out = q_out.transpose(0, 1)
+
+            all_outputs.append(q_out)
+
+        all_outputs = torch.cat(all_outputs, dim=0)
+        all_outputs = all_outputs.reshape(batch, num_patches, self.n_qubits).permute(0, 2, 1)
+
+        fold = nn.Fold(output_size=(latent_h, latent_w), kernel_size=self.window_size, stride=self.window_size).to(x_proc.device)
         output = fold(all_outputs).float()
-
+        output = output.reshape(batch, dim)
         return output.to(original_device)
 
 
@@ -127,15 +176,18 @@ class CsiNetEncoder(nn.Module):
 class QuantumCompensatedDecoder(nn.Module):
     def __init__(self, encoded_dim, alpha=0.25):
         super().__init__()
-        self.alpha = alpha
+        alpha = float(np.clip(alpha, 1e-4, 1 - 1e-4))
+        self.alpha_logit = nn.Parameter(torch.tensor(np.log(alpha / (1 - alpha)), dtype=torch.float32))
+        self.encoded_dim = encoded_dim
+        self.latent_h = 4
+        if encoded_dim % self.latent_h != 0:
+            raise ValueError(f"encoded_dim must be divisible by {self.latent_h}, got {encoded_dim}")
+        self.latent_w = encoded_dim // self.latent_h
 
         self.fc_decode = nn.Linear(encoded_dim, IMG_TOTAL)
-        self.downsample = nn.AvgPool2d(2)
         self.quantum_comp = QuantumCompensationBlock(n_qubits=4, n_layers=2, window_size=2)
-        self.upsample = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=False)
-
-        self.main_conv = nn.Conv2d(IMG_CHANNELS, IMG_CHANNELS, kernel_size=3, padding=1)
-        self.main_bn = nn.BatchNorm2d(IMG_CHANNELS)
+        self.quantum_upsample = nn.Upsample(size=(IMG_HEIGHT, IMG_WIDTH), mode="bilinear", align_corners=False)
+        self.quantum_proj = nn.Conv2d(1, IMG_CHANNELS, kernel_size=1)
 
         self.residual_blocks = nn.ModuleList([self._make_residual_block(IMG_CHANNELS) for _ in range(5)])
 
@@ -157,13 +209,13 @@ class QuantumCompensatedDecoder(nn.Module):
         x = self.fc_decode(s)
         x = x.reshape(batch_size, IMG_CHANNELS, IMG_HEIGHT, IMG_WIDTH)
 
-        main_out = F.leaky_relu(self.main_bn(self.main_conv(x)))
+        q_latent = self.quantum_comp(s)
+        q_latent_map = q_latent.reshape(batch_size, 1, self.latent_h, self.latent_w)
+        q_up = self.quantum_upsample(q_latent_map)
+        comp = self.quantum_proj(q_up)
 
-        comp = self.downsample(x)
-        comp = self.quantum_comp(comp)
-        comp = self.upsample(comp)
-
-        fused = (1 - self.alpha) * main_out + self.alpha * comp
+        alpha = torch.sigmoid(self.alpha_logit)
+        fused = (1 - alpha) * x + alpha * comp
 
         residual = fused
         for block in self.residual_blocks:
@@ -239,9 +291,14 @@ def calculate_nmse_rho(x_test, x_hat, x_test_freq):
 
 
 def _move_model_devices(model, device):
-    # 经典部分迁移到目标设备，量子块保持在 CPU（当前后端兼容性考虑）
+    # 将经典部分迁移到目标 device。若量子后端支持 GPU（例如 lightning.gpu），
+    # 则把量子模块也迁移到相同 device；否则保持量子模块在 CPU。
     model = model.to(device)
-    model.decoder.quantum_comp = model.decoder.quantum_comp.to("cpu")
+    qc_backend = getattr(model.decoder.quantum_comp, "backend", None)
+    if qc_backend and ("gpu" in str(qc_backend)):
+        model.decoder.quantum_comp = model.decoder.quantum_comp.to(device)
+    else:
+        model.decoder.quantum_comp = model.decoder.quantum_comp.to("cpu")
     return model
 
 
@@ -345,10 +402,12 @@ def run(args):
         test_loader = DataLoader(TensorDataset(x_test_tensor), batch_size=args.batch_size, shuffle=False, pin_memory=True)
         x_test_np = x_test
 
-    if args.output_dir:
-        save_dir = Path(args.output_dir)
+    # Determine save directory: priority --outputdir, then deprecated --output-dir, otherwise default saved_model
+    out_arg = getattr(args, "outputdir", "") or getattr(args, "output_dir", "")
+    if out_arg and str(out_arg).strip():
+        save_dir = Path(out_arg).expanduser().resolve()
     else:
-        save_dir = Path(__file__).resolve().parent / "gpu_model"
+        save_dir = Path(__file__).resolve().parent / "saved_model"
     save_dir.mkdir(parents=True, exist_ok=True)
 
     run_tag = args.run_tag.strip() if args.run_tag else ""
@@ -449,7 +508,8 @@ def build_parser():
     parser.add_argument("--lr", type=float, default=5e-3)
     parser.add_argument("--batch-size", type=int, default=200)
     parser.add_argument("--epochs", type=int, default=20)
-    parser.add_argument("--output-dir", type=str, default="")
+    parser.add_argument("--output-dir", type=str, default="", help="(deprecated) output directory; prefer --outputdir")
+    parser.add_argument("--outputdir", type=str, default="", help="output directory for saved artifacts (default: my_model/saved_model)")
     parser.add_argument("--run-tag", type=str, default="")
 
     # 快速验证入口，避免完整数据训练耗时。
