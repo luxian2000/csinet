@@ -1,0 +1,3 @@
+nohup: 忽略输入
+Using device: cuda:0
+Quantum backend: lightning.gpu

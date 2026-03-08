@@ -355,12 +355,14 @@ def train_model(model, train_loader, val_loader, epochs, lr, device, best_model_
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             torch.save(model.state_dict(), best_model_path)
+            print(f"Saved best model (epoch {epoch+1}): {best_model_path}", flush=True)
 
         print(
             f"Epoch [{epoch + 1}/{epochs}] "
             f"Train Loss: {avg_train_loss:.6f} "
             f"Val Loss: {avg_val_loss:.6f} "
-            f"LR: {current_lrs}"
+            f"LR: {current_lrs}",
+            flush=True,
         )
 
     return train_losses, val_losses, lr_history
