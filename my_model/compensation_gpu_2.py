@@ -376,7 +376,9 @@ def train_model(model, train_loader, val_loader, test_loader, x_test_np, x_test_
         print(summary_line, flush=True)
         if save_dir is not None:
             try:
-                with open(Path(save_dir) / "log_snapshot.txt", "a", encoding="utf-8") as f:
+                # 第一个 epoch 时覆盖写入，后续 epoch 追加
+                write_mode = "w" if epoch == 0 else "a"
+                with open(Path(save_dir) / "log_snapshot.txt", write_mode, encoding="utf-8") as f:
                     f.write(time.strftime("%Y-%m-%d %H:%M:%S") + "\n")
                     f.write(summary_line + "\n")
                     f.write("----\n")
@@ -443,12 +445,12 @@ def run(args):
         x_test_np = x_test
 
     # Determine save directory: priority --outputdir, then deprecated --output-dir,
-    # otherwise default out_10000_2.
+    # otherwise default out_10k_2.
     out_arg = getattr(args, "outputdir", "") or getattr(args, "output_dir", "")
     if out_arg and str(out_arg).strip():
         save_dir = Path(out_arg).expanduser().resolve()
     else:
-        save_dir = Path(__file__).resolve().parent / "out_10000_2"
+        save_dir = Path(__file__).resolve().parent / "out_10k_2"
     save_dir.mkdir(parents=True, exist_ok=True)
 
     run_tag = args.run_tag.strip() if args.run_tag else ""
