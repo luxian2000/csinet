@@ -395,6 +395,14 @@ def run(args):
         )
     else:
         x_train, x_val, x_test, x_test_freq = load_data(args.envir, args.data_path)
+        # Optionally subset the real datasets to requested sizes
+        if getattr(args, "train_samples", 0) and args.train_samples > 0:
+            x_train = x_train[: args.train_samples]
+        if getattr(args, "val_samples", 0) and args.val_samples > 0:
+            x_val = x_val[: args.val_samples]
+        if getattr(args, "test_samples", 0) and args.test_samples > 0:
+            x_test = x_test[: args.test_samples]
+
         x_train = torch.FloatTensor(x_train)
         x_val = torch.FloatTensor(x_val)
         x_test_tensor = torch.FloatTensor(x_test)
@@ -513,6 +521,9 @@ def build_parser():
     parser.add_argument("--output-dir", type=str, default="", help="(deprecated) output directory; prefer --outputdir")
     parser.add_argument("--outputdir", type=str, default="", help="output directory for saved artifacts (default: my_model/saved_model)")
     parser.add_argument("--run-tag", type=str, default="")
+    parser.add_argument("--train-samples", type=int, default=0, help="number of training samples to use (0=all)")
+    parser.add_argument("--val-samples", type=int, default=0, help="number of validation samples to use (0=all)")
+    parser.add_argument("--test-samples", type=int, default=0, help="number of test samples to use (0=all)")
 
     # 快速验证入口，避免完整数据训练耗时。
     parser.add_argument("--sanity", action="store_true")
