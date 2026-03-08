@@ -14,3 +14,643 @@ nohup: 忽略输入
 Using device: cuda:0
 Quantum backend: lightning.gpu
 ----
+2026年 03月 08日 星期日 16:25:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+----
+2026年 03月 08日 星期日 16:30:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+----
+2026年 03月 08日 星期日 16:35:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+----
+2026年 03月 08日 星期日 16:40:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+----
+2026年 03月 08日 星期日 16:45:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+----
+2026年 03月 08日 星期日 16:50:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+----
+2026年 03月 08日 星期日 16:55:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+----
+2026年 03月 08日 星期日 17:00:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+----
+2026年 03月 08日 星期日 17:05:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+----
+2026年 03月 08日 星期日 17:10:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+----
+2026年 03月 08日 星期日 17:15:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+----
+2026-03-08 17:16:46
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+----
+2026年 03月 08日 星期日 17:20:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 17:25:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 17:30:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 17:35:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 17:40:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 17:45:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026-03-08 17:49:49
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+----
+2026年 03月 08日 星期日 17:50:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 17:55:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 18:00:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 18:05:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 18:10:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 18:15:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 18:20:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026-03-08 18:22:51
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+----
+2026年 03月 08日 星期日 18:25:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 18:30:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 18:35:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 18:40:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 18:45:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 18:50:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026-03-08 18:55:52
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+----
+2026年 03月 08日 星期日 18:55:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 19:00:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 19:05:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 19:10:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 19:15:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 19:20:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 19:25:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 19:30:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 19:35:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 19:40:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 19:45:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 19:50:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 19:55:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 20:00:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 20:05:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 20:10:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 20:15:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 20:20:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 20:25:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 20:30:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 20:35:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 20:40:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 20:45:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 20:50:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 20:55:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 21:00:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 21:05:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 21:10:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 21:15:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 21:20:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 21:25:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 21:30:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 21:35:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 21:40:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 21:45:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----
+2026年 03月 08日 星期日 21:50:58 CST
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+----

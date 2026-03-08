@@ -1,0 +1,3 @@
+2026-03-08 21:10:50
+Epoch [1/1] Train Loss: 0.139737 Val Loss: 0.093701 LR: [0.005] NMSE: N/A, Rho: N/A, Test MSE: 0.092130
+----

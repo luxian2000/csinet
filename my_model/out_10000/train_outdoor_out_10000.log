@@ -1,2 +1,10 @@
 Using device: cuda:0
 Quantum backend: lightning.gpu
+Epoch [1/20] Train Loss: 0.005726 Val Loss: 0.001118 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 1): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [2/20] Train Loss: 0.000999 Val Loss: 0.000923 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 2): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [3/20] Train Loss: 0.000894 Val Loss: 0.000870 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 3): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth
+Epoch [4/20] Train Loss: 0.000859 Val Loss: 0.000847 LR: [0.005] Metrics: {'nmse_db': None, 'rho': None}
+Saved best model (epoch 4): /home/luxian/GitSpace/csinet/my_model/out_10000/best_model_quantum_gpu_outdoor_dim32_out_10000.pth

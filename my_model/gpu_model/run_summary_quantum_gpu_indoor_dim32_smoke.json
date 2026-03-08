@@ -1,0 +1,36 @@
+{
+  "args": {
+    "envir": "indoor",
+    "data_path": "/home/luxian/DataSpace/csinet/data",
+    "encoded_dim": 32,
+    "alpha": 0.25,
+    "lr": 0.005,
+    "batch_size": 8,
+    "epochs": 1,
+    "output_dir": "",
+    "outputdir": "/home/luxian/GitSpace/csinet/my_model/gpu_model",
+    "run_tag": "smoke",
+    "train_samples": 0,
+    "val_samples": 0,
+    "test_samples": 0,
+    "sanity": true,
+    "sanity_train_samples": 8,
+    "sanity_val_samples": 4,
+    "sanity_test_samples": 4
+  },
+  "device": "cuda:0",
+  "quantum_backend": "lightning.gpu",
+  "train_time_sec": 3.49220609664917,
+  "inference_time_per_sample_sec": 0.10635775327682495,
+  "train_samples": 8,
+  "val_samples": 4,
+  "test_samples": 4,
+  "best_model_path": "/home/luxian/GitSpace/csinet/my_model/gpu_model/best_model_quantum_gpu_indoor_dim32_smoke.pth",
+  "final_model_path": "/home/luxian/GitSpace/csinet/my_model/gpu_model/csinet_quantum_gpu_indoor_dim32_smoke.pth",
+  "train_loss_csv": "/home/luxian/GitSpace/csinet/my_model/gpu_model/train_loss_quantum_gpu_indoor_dim32_smoke.csv",
+  "val_loss_csv": "/home/luxian/GitSpace/csinet/my_model/gpu_model/val_loss_quantum_gpu_indoor_dim32_smoke.csv",
+  "lr_history_csv": "/home/luxian/GitSpace/csinet/my_model/gpu_model/lr_history_quantum_gpu_indoor_dim32_smoke.csv",
+  "metrics": {
+    "sanity_mse": 0.0864478051662445
+  }
+}

@@ -36,7 +36,7 @@ class QuantumCompensationBlock(nn.Module):
     经典网络仍可在 GPU 上训练与推理。
     """
 
-    def __init__(self, n_qubits=4, n_layers=2, window_size=2):
+    def __init__(self, n_qubits=16, n_layers=2, window_size=4):
         super().__init__()
         self.n_qubits = n_qubits
         self.n_layers = n_layers
@@ -96,8 +96,12 @@ class QuantumCompensationBlock(nn.Module):
         x_proc = x_map.to(self.weights_crz.device)
 
         unfold = nn.Unfold(kernel_size=self.window_size, stride=self.window_size).to(x_proc.device)
-        patches = unfold(x_proc)  # [batch, 4, num_patches]
+        patches = unfold(x_proc)  # [batch, 16, num_patches]
         num_patches = patches.shape[-1]
+
+        # 对 encoded_dim=32 的典型 latent shape=(4,8)，4x4 unfold 应得到 2 个 patches。
+        if latent_h == 4 and latent_w == 8 and num_patches != 2:
+            raise RuntimeError(f"Expected 2 patches for latent shape (4,8) with 4x4 unfold, got {num_patches}")
 
         total_samples = batch * num_patches
         all_inputs = patches.permute(0, 2, 1).reshape(total_samples, self.n_qubits)
@@ -167,7 +171,7 @@ class QuantumCompensatedDecoder(nn.Module):
         self.latent_w = encoded_dim // self.latent_h
 
         self.fc_decode = nn.Linear(encoded_dim, IMG_TOTAL)
-        self.quantum_comp = QuantumCompensationBlock(n_qubits=4, n_layers=2, window_size=2)
+        self.quantum_comp = QuantumCompensationBlock(n_qubits=16, n_layers=2, window_size=4)
         self.quantum_upsample = nn.Upsample(size=(IMG_HEIGHT, IMG_WIDTH), mode="bilinear", align_corners=False)
         self.quantum_proj = nn.Conv2d(1, IMG_CHANNELS, kernel_size=1)
 
@@ -348,17 +352,20 @@ def train_model(model, train_loader, val_loader, test_loader, x_test_np, x_test_
         else:
             epoch_metrics["test_mse"] = float(np.mean((x_hat - x_test_np) ** 2))
 
+        # 每个 epoch 结束时都打印 NMSE 和 rho（无频域标签时显示 N/A）
+        nmse_value = epoch_metrics.get("nmse_db", None)
+        rho_value = epoch_metrics.get("rho", None)
+
+        nmse_str = f"{nmse_value:.2f} dB" if isinstance(nmse_value, (int, float)) else "N/A"
+        rho_str = f"{rho_value:.4f}" if isinstance(rho_value, (int, float)) else "N/A"
+
         # Log epoch summary to console and to snapshot file if provided
         current_lrs = [float(g.get("lr", 0.0)) for g in optimizer.param_groups]
-        
-        # 格式化指标显示
-        if "nmse_db" in epoch_metrics and epoch_metrics["nmse_db"] is not None:
-            metrics_str = f"NMSE: {epoch_metrics['nmse_db']:.2f} dB, Rho: {epoch_metrics['rho']:.4f}"
-        elif "test_mse" in epoch_metrics:
-            metrics_str = f"Test MSE: {epoch_metrics['test_mse']:.6f}"
-        else:
-            metrics_str = str(epoch_metrics)
-        
+
+        metrics_str = f"NMSE: {nmse_str}, Rho: {rho_str}"
+        if "test_mse" in epoch_metrics:
+            metrics_str += f", Test MSE: {epoch_metrics['test_mse']:.6f}"
+
         summary_line = (
             f"Epoch [{epoch + 1}/{epochs}] "
             f"Train Loss: {avg_train_loss:.6f} "
@@ -435,12 +442,13 @@ def run(args):
         test_loader = DataLoader(TensorDataset(x_test_tensor), batch_size=args.batch_size, shuffle=False, pin_memory=True)
         x_test_np = x_test
 
-    # Determine save directory: priority --outputdir, then deprecated --output-dir, otherwise default saved_model
+    # Determine save directory: priority --outputdir, then deprecated --output-dir,
+    # otherwise default out_10000_2.
     out_arg = getattr(args, "outputdir", "") or getattr(args, "output_dir", "")
     if out_arg and str(out_arg).strip():
         save_dir = Path(out_arg).expanduser().resolve()
     else:
-        save_dir = Path(__file__).resolve().parent / "saved_model"
+        save_dir = Path(__file__).resolve().parent / "out_10000_2"
     save_dir.mkdir(parents=True, exist_ok=True)
 
     run_tag = args.run_tag.strip() if args.run_tag else ""
@@ -546,7 +554,7 @@ def build_parser():
     parser.add_argument("--batch-size", type=int, default=200)
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--output-dir", type=str, default="", help="(deprecated) output directory; prefer --outputdir")
-    parser.add_argument("--outputdir", type=str, default="", help="output directory for saved artifacts (default: my_model/saved_model)")
+    parser.add_argument("--outputdir", type=str, default="", help="output directory for saved artifacts (default: my_model/out_10000_2)")
     parser.add_argument("--run-tag", type=str, default="")
     parser.add_argument("--train-samples", type=int, default=0, help="number of training samples to use (0=all)")
     parser.add_argument("--val-samples", type=int, default=0, help="number of validation samples to use (0=all)")
