@@ -32,8 +32,7 @@ class QuantumCompensationBlock(nn.Module):
     """
     量子补偿模块（保持量子-经典混合结构）。
 
-    说明：当量子后端不支持 CUDA 时，量子电路在 CPU 上执行，
-    经典网络仍可在 GPU 上训练与推理。
+    说明：该版本固定为 CPU 执行，保持量子-经典混合结构不变。
     """
 
     def __init__(self, n_qubits=16, n_layers=2, window_size=4):
@@ -50,15 +49,21 @@ class QuantumCompensationBlock(nn.Module):
         self.backend = None
         self.dev = None
         try:
-            # 强制使用 GPU 后端（要求安装 pennylane-lightning[gpu] 并有可用 CUDA）
-            self.dev = qml.device("lightning.gpu", wires=n_qubits, batch_obs=True)
-            self.backend = "lightning.gpu"
-        except Exception as e:
-            raise RuntimeError(
-                "Failed to create lightning.gpu device. Install pennylane-lightning[gpu] and ensure CUDA is available."
-            ) from e
+            self.dev = qml.device("lightning.qubit", wires=n_qubits, batch_obs=True)
+            self.backend = "lightning.qubit"
+            diff_method = "adjoint"
+        except Exception:
+            try:
+                # 回退到默认 CPU 模拟器，避免环境中缺少 lightning 插件时无法运行。
+                self.dev = qml.device("default.qubit", wires=n_qubits)
+                self.backend = "default.qubit"
+                diff_method = "backprop"
+            except Exception as e:
+                raise RuntimeError(
+                    "Failed to create CPU quantum device. Install pennylane-lightning or pennylane with default.qubit support."
+                ) from e
 
-        @qml.qnode(self.dev, interface="torch", diff_method="adjoint")
+        @qml.qnode(self.dev, interface="torch", diff_method=diff_method)
         def quantum_circuit(inputs, weights_crz, weights_ry):
             for i in range(n_qubits):
                 qml.Hadamard(wires=i)
@@ -92,7 +97,7 @@ class QuantumCompensationBlock(nn.Module):
         original_device = x.device
 
         x_map = x.reshape(batch, 1, latent_h, latent_w)
-        # 强制使用 GPU：把输入移动到与量子模块权重相同的设备（应为 CUDA）
+        # 将输入移动到量子参数所在设备（CPU 版本应为 cpu）。
         x_proc = x_map.to(self.weights_crz.device)
 
         unfold = nn.Unfold(kernel_size=self.window_size, stride=self.window_size).to(x_proc.device)
@@ -108,7 +113,7 @@ class QuantumCompensationBlock(nn.Module):
         all_inputs = torch.tanh(all_inputs) * np.pi
 
         all_outputs = []
-        # 尝试批量调用 qnode。若设备/接口支持批量输入（例如 LightningGPU + batch_obs=True），
+        # 尝试批量调用 qnode。若设备/接口支持批量输入，可一次性处理一个 mini-batch。
         # 可以一次性传入 shape=(B, n_qubits) 的张量并返回 shape=(B, n_qubits) 的结果。
         # 为了兼容不同后端，同时按块处理以控制内存。
         chunk_size = 256
@@ -277,8 +282,7 @@ def calculate_nmse_rho(x_test, x_hat, x_test_freq):
 
 
 def _move_model_devices(model, device):
-    # 将经典部分迁移到目标 device。若量子后端支持 GPU（例如 lightning.gpu），
-    # 强制把所有模块（含量子部分的参数）都迁移到目标 device（GPU）
+    # 将模型整体迁移到目标 device。CPU 版本下这里保持为 cpu。
     model = model.to(device)
     model.decoder.quantum_comp = model.decoder.quantum_comp.to(device)
     return model
@@ -290,7 +294,7 @@ def train_model(model, train_loader, val_loader, test_loader, x_test_np, x_test_
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.5)
     criterion = nn.MSELoss()
-    scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
+    scaler = torch.amp.GradScaler(device.type, enabled=device.type == "cuda")
 
     best_val_loss = float("inf")
     train_losses = []
@@ -397,23 +401,24 @@ def train_model(model, train_loader, val_loader, test_loader, x_test_np, x_test_
     return train_losses, val_losses, lr_history
 
 
-def make_sanity_loaders(batch_size=32, train_samples=64, val_samples=32, test_samples=32):
+def make_sanity_loaders(batch_size=32, train_samples=64, val_samples=32, test_samples=32, pin_memory=False):
     x_train = torch.rand(train_samples, IMG_CHANNELS, IMG_HEIGHT, IMG_WIDTH)
     x_val = torch.rand(val_samples, IMG_CHANNELS, IMG_HEIGHT, IMG_WIDTH)
     x_test = torch.rand(test_samples, IMG_CHANNELS, IMG_HEIGHT, IMG_WIDTH)
 
-    train_loader = DataLoader(TensorDataset(x_train), batch_size=batch_size, shuffle=True, pin_memory=True)
-    val_loader = DataLoader(TensorDataset(x_val), batch_size=batch_size, shuffle=False, pin_memory=True)
-    test_loader = DataLoader(TensorDataset(x_test), batch_size=batch_size, shuffle=False, pin_memory=True)
+    train_loader = DataLoader(TensorDataset(x_train), batch_size=batch_size, shuffle=True, pin_memory=pin_memory)
+    val_loader = DataLoader(TensorDataset(x_val), batch_size=batch_size, shuffle=False, pin_memory=pin_memory)
+    test_loader = DataLoader(TensorDataset(x_test), batch_size=batch_size, shuffle=False, pin_memory=pin_memory)
     return train_loader, val_loader, test_loader, x_test.numpy(), None
 
 
 def run(args):
-    # 强制使用 GPU，否则报错
-    if not torch.cuda.is_available():
-        raise RuntimeError("CUDA is not available. This script requires a CUDA GPU.")
-    device = torch.device("cuda:0")
+    # 固定使用 CPU。
+    device = torch.device("cpu")
     print(f"Using device: {device}")
+
+    # DataLoader pin_memory only meaningful for CUDA; set flag accordingly
+    pin_memory_flag = device.type == "cuda"
 
     model = CsiNetQuantumCompensated(encoded_dim=args.encoded_dim, alpha=args.alpha)
     print(f"Quantum backend: {model.decoder.quantum_comp.backend}")
@@ -424,6 +429,7 @@ def run(args):
             train_samples=args.sanity_train_samples,
             val_samples=args.sanity_val_samples,
             test_samples=args.sanity_test_samples,
+            pin_memory=pin_memory_flag,
         )
     else:
         x_train, x_val, x_test, x_test_freq = load_data(args.envir, args.data_path)
@@ -439,9 +445,9 @@ def run(args):
         x_val = torch.FloatTensor(x_val)
         x_test_tensor = torch.FloatTensor(x_test)
 
-        train_loader = DataLoader(TensorDataset(x_train), batch_size=args.batch_size, shuffle=True, pin_memory=True)
-        val_loader = DataLoader(TensorDataset(x_val), batch_size=args.batch_size, shuffle=False, pin_memory=True)
-        test_loader = DataLoader(TensorDataset(x_test_tensor), batch_size=args.batch_size, shuffle=False, pin_memory=True)
+        train_loader = DataLoader(TensorDataset(x_train), batch_size=args.batch_size, shuffle=True, pin_memory=pin_memory_flag)
+        val_loader = DataLoader(TensorDataset(x_val), batch_size=args.batch_size, shuffle=False, pin_memory=pin_memory_flag)
+        test_loader = DataLoader(TensorDataset(x_test_tensor), batch_size=args.batch_size, shuffle=False, pin_memory=pin_memory_flag)
         x_test_np = x_test
 
     # Determine save directory: priority --outputdir, then deprecated --output-dir,
@@ -458,7 +464,7 @@ def run(args):
         run_tag = time.strftime("%Y%m%d_%H%M%S")
 
     suffix = f"{args.envir}_dim{args.encoded_dim}_{run_tag}"
-    best_model_path = save_dir / f"best_model_quantum_gpu_{suffix}.pth"
+    best_model_path = save_dir / f"best_model_quantum_cpu_{suffix}.pth"
 
     start = time.time()
     train_losses, val_losses, lr_history = train_model(
@@ -507,10 +513,10 @@ def run(args):
         metrics["sanity_mse"] = sanity_mse
         print(f"Sanity MSE: {sanity_mse:.6f}")
 
-    final_model_path = save_dir / f"csinet_quantum_gpu_{suffix}.pth"
-    train_loss_path = save_dir / f"train_loss_quantum_gpu_{suffix}.csv"
-    val_loss_path = save_dir / f"val_loss_quantum_gpu_{suffix}.csv"
-    lr_path = save_dir / f"lr_history_quantum_gpu_{suffix}.csv"
+    final_model_path = save_dir / f"csinet_quantum_cpu_{suffix}.pth"
+    train_loss_path = save_dir / f"train_loss_quantum_cpu_{suffix}.csv"
+    val_loss_path = save_dir / f"val_loss_quantum_cpu_{suffix}.csv"
+    lr_path = save_dir / f"lr_history_quantum_cpu_{suffix}.csv"
 
     torch.save(model.state_dict(), final_model_path)
     np.savetxt(train_loss_path, train_losses, delimiter=",")
@@ -534,7 +540,7 @@ def run(args):
         "metrics": metrics,
     }
 
-    summary_path = save_dir / f"run_summary_quantum_gpu_{suffix}.json"
+    summary_path = save_dir / f"run_summary_quantum_cpu_{suffix}.json"
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
 
@@ -547,7 +553,7 @@ def run(args):
 
 
 def build_parser():
-    parser = argparse.ArgumentParser(description="CsiNet quantum-classical hybrid (GPU-oriented)")
+    parser = argparse.ArgumentParser(description="CsiNet quantum-classical hybrid (CPU-oriented)")
     parser.add_argument("--envir", type=str, default="indoor", choices=["indoor", "outdoor"])
     parser.add_argument("--data-path", type=str, default="/home/luxian/DataSpace/csinet/data")
     parser.add_argument("--encoded-dim", type=int, default=32, choices=sorted(set(COMPRESSION_RATES.values())))
@@ -556,6 +562,7 @@ def build_parser():
     parser.add_argument("--batch-size", type=int, default=200)
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--output-dir", type=str, default="", help="(deprecated) output directory; prefer --outputdir")
+    parser.add_argument("--outputdir", type=str, default="", help="output directory for saved artifacts (default: my_model/out_10000_2)")
     parser.add_argument("--run-tag", type=str, default="")
     parser.add_argument("--train-samples", type=int, default=0, help="number of training samples to use (0=all)")
     parser.add_argument("--val-samples", type=int, default=0, help="number of validation samples to use (0=all)")
