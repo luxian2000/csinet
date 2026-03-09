@@ -556,7 +556,6 @@ def build_parser():
     parser.add_argument("--batch-size", type=int, default=200)
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--output-dir", type=str, default="", help="(deprecated) output directory; prefer --outputdir")
-    parser.add_argument("--outputdir", type=str, default="", help="output directory for saved artifacts (default: my_model/out_10000_2)")
     parser.add_argument("--run-tag", type=str, default="")
     parser.add_argument("--train-samples", type=int, default=0, help="number of training samples to use (0=all)")
     parser.add_argument("--val-samples", type=int, default=0, help="number of validation samples to use (0=all)")
