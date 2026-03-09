@@ -1,5 +1,6 @@
 import argparse
 import json
+import re
 import time
 from pathlib import Path
 
@@ -284,7 +285,91 @@ def _move_model_devices(model, device):
     return model
 
 
-def train_model(model, train_loader, val_loader, test_loader, x_test_np, x_test_freq, epochs, lr, device, best_model_path, save_dir=None):
+def _parse_epoch_from_filename(path):
+    m = re.search(r"epoch_(\d+)", Path(path).name)
+    if m:
+        return int(m.group(1))
+    return None
+
+
+def _load_resume_state(resume_path, model, optimizer, scheduler, scaler, device):
+    checkpoint = torch.load(resume_path, map_location=device)
+
+    # Full checkpoint format (preferred)
+    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+        model.load_state_dict(checkpoint["model_state_dict"])
+        if "optimizer_state_dict" in checkpoint:
+            optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        if "scheduler_state_dict" in checkpoint:
+            scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
+        if "scaler_state_dict" in checkpoint and checkpoint["scaler_state_dict"] is not None:
+            scaler.load_state_dict(checkpoint["scaler_state_dict"])
+
+        start_epoch = int(checkpoint.get("epoch", -1)) + 1
+        best_val_loss = float(checkpoint.get("best_val_loss", float("inf")))
+        train_losses = list(checkpoint.get("train_losses", []))
+        val_losses = list(checkpoint.get("val_losses", []))
+        lr_history = list(checkpoint.get("lr_history", []))
+        return start_epoch, best_val_loss, train_losses, val_losses, lr_history
+
+    # Weights-only format (legacy / per-epoch model file)
+    if isinstance(checkpoint, dict):
+        model.load_state_dict(checkpoint)
+        parsed_epoch = _parse_epoch_from_filename(resume_path)
+        start_epoch = parsed_epoch if parsed_epoch is not None else 0
+        print(
+            "Resume file is weights-only. Optimizer/scheduler states are reset; "
+            f"continuing from epoch {start_epoch + 1}.",
+            flush=True,
+        )
+        return start_epoch, float("inf"), [], [], []
+
+    raise RuntimeError(f"Unsupported checkpoint format: {resume_path}")
+
+
+def _save_checkpoint(
+    checkpoint_path,
+    epoch,
+    model,
+    optimizer,
+    scheduler,
+    scaler,
+    best_val_loss,
+    train_losses,
+    val_losses,
+    lr_history,
+):
+    torch.save(
+        {
+            "epoch": int(epoch),
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "scheduler_state_dict": scheduler.state_dict(),
+            "scaler_state_dict": scaler.state_dict() if scaler is not None else None,
+            "best_val_loss": float(best_val_loss),
+            "train_losses": train_losses,
+            "val_losses": val_losses,
+            "lr_history": lr_history,
+        },
+        checkpoint_path,
+    )
+
+
+def train_model(
+    model,
+    train_loader,
+    val_loader,
+    test_loader,
+    x_test_np,
+    x_test_freq,
+    epochs,
+    lr,
+    device,
+    best_model_path,
+    save_dir=None,
+    run_suffix="",
+    resume_path="",
+):
     model = _move_model_devices(model, device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -296,8 +381,29 @@ def train_model(model, train_loader, val_loader, test_loader, x_test_np, x_test_
     train_losses = []
     val_losses = []
     lr_history = []
+    start_epoch = 0
 
-    for epoch in range(epochs):
+    if resume_path:
+        print(f"Resuming training from: {resume_path}", flush=True)
+        start_epoch, best_val_loss, train_losses, val_losses, lr_history = _load_resume_state(
+            resume_path=resume_path,
+            model=model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            scaler=scaler,
+            device=device,
+        )
+        model = _move_model_devices(model, device)
+        print(f"Resume start epoch: {start_epoch + 1}/{epochs}", flush=True)
+
+    if start_epoch >= epochs:
+        print(
+            f"Checkpoint epoch ({start_epoch}) is already >= target epochs ({epochs}); nothing to train.",
+            flush=True,
+        )
+        return train_losses, val_losses, lr_history
+
+    for epoch in range(start_epoch, epochs):
         model.train()
         train_loss = 0.0
 
@@ -394,6 +500,38 @@ def train_model(model, train_loader, val_loader, test_loader, x_test_np, x_test_
             torch.save(model.state_dict(), best_model_path)
             print(f"Saved best model (epoch {epoch+1}): {best_model_path}", flush=True)
 
+        if save_dir is not None:
+            epoch_model_path = Path(save_dir) / f"model_epoch_{epoch + 1:03d}_{run_suffix}.pth"
+            checkpoint_epoch_path = Path(save_dir) / f"checkpoint_epoch_{epoch + 1:03d}_{run_suffix}.pth"
+            checkpoint_last_path = Path(save_dir) / f"checkpoint_last_{run_suffix}.pth"
+
+            torch.save(model.state_dict(), epoch_model_path)
+            _save_checkpoint(
+                checkpoint_path=checkpoint_epoch_path,
+                epoch=epoch,
+                model=model,
+                optimizer=optimizer,
+                scheduler=scheduler,
+                scaler=scaler,
+                best_val_loss=best_val_loss,
+                train_losses=train_losses,
+                val_losses=val_losses,
+                lr_history=lr_history,
+            )
+            _save_checkpoint(
+                checkpoint_path=checkpoint_last_path,
+                epoch=epoch,
+                model=model,
+                optimizer=optimizer,
+                scheduler=scheduler,
+                scaler=scaler,
+                best_val_loss=best_val_loss,
+                train_losses=train_losses,
+                val_losses=val_losses,
+                lr_history=lr_history,
+            )
+            print(f"Saved epoch model: {epoch_model_path}", flush=True)
+
     return train_losses, val_losses, lr_history
 
 
@@ -459,6 +597,18 @@ def run(args):
 
     suffix = f"{args.envir}_dim{args.encoded_dim}_{run_tag}"
     best_model_path = save_dir / f"best_model_quantum_gpu_{suffix}.pth"
+    resume_path = ""
+    if args.resume_from and args.resume_from.strip():
+        resume_path = str(Path(args.resume_from).expanduser().resolve())
+        if not Path(resume_path).exists():
+            raise FileNotFoundError(f"Resume file not found: {resume_path}")
+    elif args.auto_resume:
+        auto_path = save_dir / f"checkpoint_last_{suffix}.pth"
+        if auto_path.exists():
+            resume_path = str(auto_path)
+            print(f"Auto-resume checkpoint found: {resume_path}")
+        else:
+            print(f"Auto-resume checkpoint not found: {auto_path}. Starting fresh run.")
 
     start = time.time()
     train_losses, val_losses, lr_history = train_model(
@@ -473,6 +623,8 @@ def run(args):
         device=device,
         best_model_path=best_model_path,
         save_dir=save_dir,
+        run_suffix=suffix,
+        resume_path=resume_path,
     )
     train_time = time.time() - start
     print(f"Training time: {train_time:.2f}s")
@@ -556,7 +708,10 @@ def build_parser():
     parser.add_argument("--batch-size", type=int, default=200)
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--output-dir", type=str, default="", help="(deprecated) output directory; prefer --outputdir")
+    parser.add_argument("--outputdir", type=str, default="", help="output directory for saved artifacts")
     parser.add_argument("--run-tag", type=str, default="")
+    parser.add_argument("--resume-from", type=str, default="", help="path to checkpoint/model file to resume training")
+    parser.add_argument("--auto-resume", action="store_true", help="resume from checkpoint_last_<suffix>.pth in save dir")
     parser.add_argument("--train-samples", type=int, default=0, help="number of training samples to use (0=all)")
     parser.add_argument("--val-samples", type=int, default=0, help="number of validation samples to use (0=all)")
     parser.add_argument("--test-samples", type=int, default=0, help="number of test samples to use (0=all)")
