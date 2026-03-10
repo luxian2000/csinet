@@ -1,0 +1,5 @@
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Save directory: /home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu
+Resuming training from: /home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu/checkpoint_last_outdoor_dim32_outdoor_resume_20260309_120205.pth
+Resume start epoch: 2/2

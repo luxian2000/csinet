@@ -1,0 +1,2 @@
+epoch,train_loss,val_loss,nmse_db,rho,checkpoint,model
+2,0.00080165,0.00079115,0.001982,0.046406,/home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu/checkpoint_epoch_002_outdoor_dim32_outdoor_resume.pth,/home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu/model_epoch_002_outdoor_dim32_outdoor_resume.pth

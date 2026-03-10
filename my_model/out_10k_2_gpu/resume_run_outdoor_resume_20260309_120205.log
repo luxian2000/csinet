@@ -1,0 +1,9 @@
+Resuming from: /home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu/checkpoint_last_outdoor_dim32_outdoor_resume_20260309_120205.pth
+Device: cuda:0
+Quantum backend: lightning.gpu
+Save directory: /home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu
+Samples train/val/test: 5000/1500/1000
+Epoch [2/2] Train 0.000802 Val 0.000791 NMSE 0.00 dB Rho 0.0464
+Final NMSE: 0.00 dB
+Final Rho: 0.0464
+Saved summary: /home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu/run_summary_outdoor_dim32_outdoor_resume.json

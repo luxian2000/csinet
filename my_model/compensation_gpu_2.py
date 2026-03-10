@@ -1,4 +1,5 @@
 import argparse
+import csv
 import json
 import re
 import time
@@ -21,43 +22,29 @@ IMG_WIDTH = 32
 IMG_CHANNELS = 2
 IMG_TOTAL = IMG_HEIGHT * IMG_WIDTH * IMG_CHANNELS
 
-COMPRESSION_RATES = {
-    1 / 4: 512,
-    1 / 16: 128,
-    1 / 32: 64,
-    1 / 64: 32,
-}
+DEFAULT_DATA_PATH = "/home/luxian/DataSpace/csinet/data"
+DEFAULT_OUT_DIR = Path(__file__).resolve().parent / "out_10k_2_gpu"
 
 
 class QuantumCompensationBlock(nn.Module):
-    """
-    量子补偿模块（保持量子-经典混合结构）。
-
-    说明：当量子后端不支持 CUDA 时，量子电路在 CPU 上执行，
-    经典网络仍可在 GPU 上训练与推理。
-    """
-
     def __init__(self, n_qubits=16, n_layers=2, window_size=4):
         super().__init__()
         self.n_qubits = n_qubits
         self.n_layers = n_layers
         self.window_size = window_size
         if n_qubits != window_size * window_size:
-            raise ValueError("n_qubits must equal window_size*window_size for fold/unfold reconstruction.")
+            raise ValueError("n_qubits must equal window_size*window_size")
 
         self.weights_crz = nn.Parameter(torch.randn(n_layers, n_qubits) * 0.1)
         self.weights_ry = nn.Parameter(torch.randn(n_layers, n_qubits) * 0.1)
 
-        self.backend = None
-        self.dev = None
         try:
-            # 强制使用 GPU 后端（要求安装 pennylane-lightning[gpu] 并有可用 CUDA）
             self.dev = qml.device("lightning.gpu", wires=n_qubits, batch_obs=True)
             self.backend = "lightning.gpu"
-        except Exception as e:
+        except Exception as exc:
             raise RuntimeError(
-                "Failed to create lightning.gpu device. Install pennylane-lightning[gpu] and ensure CUDA is available."
-            ) from e
+                "Failed to create lightning.gpu. Install pennylane-lightning[gpu] and ensure CUDA is available."
+            ) from exc
 
         @qml.qnode(self.dev, interface="torch", diff_method="adjoint")
         def quantum_circuit(inputs, weights_crz, weights_ry):
@@ -69,7 +56,6 @@ class QuantumCompensationBlock(nn.Module):
                 for i in range(n_qubits - 1):
                     qml.CRZ(weights_crz[layer, i], wires=[i, i + 1])
                 qml.CRZ(weights_crz[layer, n_qubits - 1], wires=[n_qubits - 1, 0])
-
                 for i in range(n_qubits):
                     qml.RY(weights_ry[layer, i], wires=i)
 
@@ -78,9 +64,8 @@ class QuantumCompensationBlock(nn.Module):
         self.circuit = quantum_circuit
 
     def forward(self, x):
-        # x: [batch, encoded_dim]
         if x.dim() != 2:
-            raise ValueError(f"QuantumCompensationBlock expects 2D latent input [B, D], got shape={tuple(x.shape)}")
+            raise ValueError(f"Expected latent tensor [B, D], got {tuple(x.shape)}")
 
         batch, dim = x.shape
         latent_h = 4
@@ -91,56 +76,31 @@ class QuantumCompensationBlock(nn.Module):
             raise ValueError(f"latent width {latent_w} must be divisible by window_size {self.window_size}")
 
         original_device = x.device
-
         x_map = x.reshape(batch, 1, latent_h, latent_w)
-        # 强制使用 GPU：把输入移动到与量子模块权重相同的设备（应为 CUDA）
         x_proc = x_map.to(self.weights_crz.device)
 
         unfold = nn.Unfold(kernel_size=self.window_size, stride=self.window_size).to(x_proc.device)
-        patches = unfold(x_proc)  # [batch, 16, num_patches]
+        patches = unfold(x_proc)
         num_patches = patches.shape[-1]
-
-        # 对 encoded_dim=32 的典型 latent shape=(4,8)，4x4 unfold 应得到 2 个 patches。
-        if latent_h == 4 and latent_w == 8 and num_patches != 2:
-            raise RuntimeError(f"Expected 2 patches for latent shape (4,8) with 4x4 unfold, got {num_patches}")
 
         total_samples = batch * num_patches
         all_inputs = patches.permute(0, 2, 1).reshape(total_samples, self.n_qubits)
         all_inputs = torch.tanh(all_inputs) * np.pi
 
         all_outputs = []
-        # 尝试批量调用 qnode。若设备/接口支持批量输入（例如 LightningGPU + batch_obs=True），
-        # 可以一次性传入 shape=(B, n_qubits) 的张量并返回 shape=(B, n_qubits) 的结果。
-        # 为了兼容不同后端，同时按块处理以控制内存。
         chunk_size = 256
         for start in range(0, total_samples, chunk_size):
             end = min(total_samples, start + chunk_size)
-            batch_inp = all_inputs[start:end]
-            # 始终把量子电路输入移到量子参数所在设备
-            if hasattr(self.weights_crz, 'device'):
-                batch_inp = batch_inp.to(self.weights_crz.device)
-
-            q_out = self.circuit(batch_inp, self.weights_crz, self.weights_ry)
-
-            # q_out 可能是 list-of-tensors (每个元素长度=batch) 或者 tensor (batch, n_qubits)
+            q_out = self.circuit(all_inputs[start:end].to(self.weights_crz.device), self.weights_crz, self.weights_ry)
             if isinstance(q_out, (list, tuple)):
-                # 转成 tensor (batch, n_qubits)
                 q_out = torch.stack([o if isinstance(o, torch.Tensor) else torch.tensor(o) for o in q_out], dim=1)
-            else:
-                # 若 q_out 是 tensor，确保维度为 (batch, n_qubits)
-                if q_out.dim() == 1:
-                    q_out = q_out.unsqueeze(1)
-                elif q_out.dim() == 2 and q_out.shape[0] == self.n_qubits and q_out.shape[1] == (end - start):
-                    q_out = q_out.transpose(0, 1)
-
             all_outputs.append(q_out)
 
         all_outputs = torch.cat(all_outputs, dim=0)
         all_outputs = all_outputs.reshape(batch, num_patches, self.n_qubits).permute(0, 2, 1)
 
         fold = nn.Fold(output_size=(latent_h, latent_w), kernel_size=self.window_size, stride=self.window_size).to(x_proc.device)
-        output = fold(all_outputs).float()
-        output = output.reshape(batch, dim)
+        output = fold(all_outputs).float().reshape(batch, dim)
         return output.to(original_device)
 
 
@@ -149,15 +109,12 @@ class CsiNetEncoder(nn.Module):
         super().__init__()
         self.conv1 = nn.Conv2d(IMG_CHANNELS, 2, kernel_size=3, padding=1)
         self.bn1 = nn.BatchNorm2d(2)
-        self.lr1 = nn.LeakyReLU()
+        self.act = nn.LeakyReLU()
         self.flatten = nn.Flatten()
         self.fc_encode = nn.Linear(IMG_TOTAL, encoded_dim)
 
     def forward(self, x):
-        x = self.lr1(self.bn1(self.conv1(x)))
-        x = self.flatten(x)
-        x = self.fc_encode(x)
-        return x
+        return self.fc_encode(self.flatten(self.act(self.bn1(self.conv1(x)))))
 
 
 class QuantumCompensatedDecoder(nn.Module):
@@ -176,40 +133,33 @@ class QuantumCompensatedDecoder(nn.Module):
         self.quantum_upsample = nn.Upsample(size=(IMG_HEIGHT, IMG_WIDTH), mode="bilinear", align_corners=False)
         self.quantum_proj = nn.Conv2d(1, IMG_CHANNELS, kernel_size=1)
 
-        self.residual_blocks = nn.ModuleList([self._make_residual_block(IMG_CHANNELS) for _ in range(5)])
-
+        self.residual_blocks = nn.ModuleList([
+            nn.Sequential(
+                nn.Conv2d(IMG_CHANNELS, IMG_CHANNELS, kernel_size=3, padding=1),
+                nn.BatchNorm2d(IMG_CHANNELS),
+                nn.LeakyReLU(),
+                nn.Conv2d(IMG_CHANNELS, IMG_CHANNELS, kernel_size=3, padding=1),
+                nn.BatchNorm2d(IMG_CHANNELS),
+            )
+            for _ in range(5)
+        ])
         self.output_conv = nn.Conv2d(IMG_CHANNELS, IMG_CHANNELS, kernel_size=3, padding=1)
         self.sigmoid = nn.Sigmoid()
 
-    @staticmethod
-    def _make_residual_block(channels):
-        return nn.Sequential(
-            nn.Conv2d(channels, channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(channels),
-            nn.LeakyReLU(),
-            nn.Conv2d(channels, channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(channels),
-        )
-
     def forward(self, s):
-        batch_size = s.shape[0]
-        x = self.fc_decode(s)
-        x = x.reshape(batch_size, IMG_CHANNELS, IMG_HEIGHT, IMG_WIDTH)
+        batch = s.shape[0]
+        x = self.fc_decode(s).reshape(batch, IMG_CHANNELS, IMG_HEIGHT, IMG_WIDTH)
 
-        q_latent = self.quantum_comp(s)
-        q_latent_map = q_latent.reshape(batch_size, 1, self.latent_h, self.latent_w)
-        q_up = self.quantum_upsample(q_latent_map)
-        comp = self.quantum_proj(q_up)
+        q_latent = self.quantum_comp(s).reshape(batch, 1, self.latent_h, self.latent_w)
+        comp = self.quantum_proj(self.quantum_upsample(q_latent))
 
         alpha = torch.sigmoid(self.alpha_logit)
-        fused = (1 - alpha) * x + alpha * comp
+        residual = (1 - alpha) * x + alpha * comp
 
-        residual = fused
         for block in self.residual_blocks:
             residual = F.leaky_relu(residual + block(residual))
 
-        out = self.sigmoid(self.output_conv(residual))
-        return out
+        return self.sigmoid(self.output_conv(residual))
 
 
 class CsiNetQuantumCompensated(nn.Module):
@@ -219,49 +169,42 @@ class CsiNetQuantumCompensated(nn.Module):
         self.decoder = QuantumCompensatedDecoder(encoded_dim, alpha)
 
     def forward(self, x):
-        s = self.encoder(x)
-        x_hat = self.decoder(s)
-        return x_hat
+        return self.decoder(self.encoder(x))
 
 
-def load_data(envir="indoor", data_path="/home/luxian/DataSpace/csinet/data"):
+def load_data(envir="outdoor", data_path=DEFAULT_DATA_PATH):
     if envir == "indoor":
-        x_train = sio.loadmat(f"{data_path}/DATA_Htrainin.mat")["HT"].astype(np.float32)
-        x_val = sio.loadmat(f"{data_path}/DATA_Hvalin.mat")["HT"].astype(np.float32)
-        x_test = sio.loadmat(f"{data_path}/DATA_Htestin.mat")["HT"].astype(np.float32)
-        x_test_freq = sio.loadmat(f"{data_path}/DATA_HtestFin_all.mat")["HF_all"].astype(np.complex128)
+        train = sio.loadmat(f"{data_path}/DATA_Htrainin.mat")["HT"].astype(np.float32)
+        val = sio.loadmat(f"{data_path}/DATA_Hvalin.mat")["HT"].astype(np.float32)
+        test = sio.loadmat(f"{data_path}/DATA_Htestin.mat")["HT"].astype(np.float32)
+        test_freq = sio.loadmat(f"{data_path}/DATA_HtestFin_all.mat")["HF_all"].astype(np.complex128)
     else:
-        x_train = sio.loadmat(f"{data_path}/DATA_Htrainout.mat")["HT"].astype(np.float32)
-        x_val = sio.loadmat(f"{data_path}/DATA_Hvalout.mat")["HT"].astype(np.float32)
-        x_test = sio.loadmat(f"{data_path}/DATA_Htestout.mat")["HT"].astype(np.float32)
-        x_test_freq = sio.loadmat(f"{data_path}/DATA_HtestFout_all.mat")["HF_all"].astype(np.complex128)
+        train = sio.loadmat(f"{data_path}/DATA_Htrainout.mat")["HT"].astype(np.float32)
+        val = sio.loadmat(f"{data_path}/DATA_Hvalout.mat")["HT"].astype(np.float32)
+        test = sio.loadmat(f"{data_path}/DATA_Htestout.mat")["HT"].astype(np.float32)
+        test_freq = sio.loadmat(f"{data_path}/DATA_HtestFout_all.mat")["HF_all"].astype(np.complex128)
 
     def preprocess(data):
         bs = data.shape[0]
         return data.reshape(bs, IMG_CHANNELS, IMG_HEIGHT, IMG_WIDTH)
 
-    x_train = preprocess(x_train)
-    x_val = preprocess(x_val)
-    x_test = preprocess(x_test)
-    x_test_freq = x_test_freq.reshape(-1, IMG_HEIGHT, 125)
-
-    return x_train, x_val, x_test, x_test_freq
+    return preprocess(train), preprocess(val), preprocess(test), test_freq.reshape(-1, IMG_HEIGHT, 125)
 
 
 def calculate_nmse_rho(x_test, x_hat, x_test_freq):
-    batch_size = x_test.shape[0]
+    bs = x_test.shape[0]
 
-    x_test_real = x_test[:, 0, :, :].reshape(batch_size, -1)
-    x_test_imag = x_test[:, 1, :, :].reshape(batch_size, -1)
+    x_test_real = x_test[:, 0, :, :].reshape(bs, -1)
+    x_test_imag = x_test[:, 1, :, :].reshape(bs, -1)
     x_test_c = (x_test_real - 0.5) + 1j * (x_test_imag - 0.5)
 
-    x_hat_real = x_hat[:, 0, :, :].reshape(batch_size, -1)
-    x_hat_imag = x_hat[:, 1, :, :].reshape(batch_size, -1)
+    x_hat_real = x_hat[:, 0, :, :].reshape(bs, -1)
+    x_hat_imag = x_hat[:, 1, :, :].reshape(bs, -1)
     x_hat_c = (x_hat_real - 0.5) + 1j * (x_hat_imag - 0.5)
 
-    x_hat_f = x_hat_c.reshape(batch_size, IMG_HEIGHT, IMG_WIDTH)
+    x_hat_f = x_hat_c.reshape(bs, IMG_HEIGHT, IMG_WIDTH)
     x_hat_full = np.fft.fft(
-        np.concatenate((x_hat_f, np.zeros((batch_size, IMG_HEIGHT, 257 - IMG_WIDTH))), axis=2),
+        np.concatenate((x_hat_f, np.zeros((bs, IMG_HEIGHT, 257 - IMG_WIDTH))), axis=2),
         axis=2,
     )[:, :, 0:125]
 
@@ -273,72 +216,21 @@ def calculate_nmse_rho(x_test, x_hat, x_test_freq):
     power = np.sum(np.abs(x_test_c) ** 2, axis=1)
     mse = np.sum(np.abs(x_test_c - x_hat_c) ** 2, axis=1)
     nmse = 10 * np.log10(np.mean(mse / (power + 1e-10)))
-
     return float(nmse), float(np.mean(rho))
 
 
-def _move_model_devices(model, device):
-    # 将经典部分迁移到目标 device。若量子后端支持 GPU（例如 lightning.gpu），
-    # 强制把所有模块（含量子部分的参数）都迁移到目标 device（GPU）
+def _to_device(model, device):
     model = model.to(device)
     model.decoder.quantum_comp = model.decoder.quantum_comp.to(device)
     return model
 
 
 def _parse_epoch_from_filename(path):
-    m = re.search(r"epoch_(\d+)", Path(path).name)
-    if m:
-        return int(m.group(1))
-    return None
+    match = re.search(r"epoch_(\d+)", Path(path).name)
+    return int(match.group(1)) if match else None
 
 
-def _load_resume_state(resume_path, model, optimizer, scheduler, scaler, device):
-    checkpoint = torch.load(resume_path, map_location=device)
-
-    # Full checkpoint format (preferred)
-    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
-        model.load_state_dict(checkpoint["model_state_dict"])
-        if "optimizer_state_dict" in checkpoint:
-            optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-        if "scheduler_state_dict" in checkpoint:
-            scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
-        if "scaler_state_dict" in checkpoint and checkpoint["scaler_state_dict"] is not None:
-            scaler.load_state_dict(checkpoint["scaler_state_dict"])
-
-        start_epoch = int(checkpoint.get("epoch", -1)) + 1
-        best_val_loss = float(checkpoint.get("best_val_loss", float("inf")))
-        train_losses = list(checkpoint.get("train_losses", []))
-        val_losses = list(checkpoint.get("val_losses", []))
-        lr_history = list(checkpoint.get("lr_history", []))
-        return start_epoch, best_val_loss, train_losses, val_losses, lr_history
-
-    # Weights-only format (legacy / per-epoch model file)
-    if isinstance(checkpoint, dict):
-        model.load_state_dict(checkpoint)
-        parsed_epoch = _parse_epoch_from_filename(resume_path)
-        start_epoch = parsed_epoch if parsed_epoch is not None else 0
-        print(
-            "Resume file is weights-only. Optimizer/scheduler states are reset; "
-            f"continuing from epoch {start_epoch + 1}.",
-            flush=True,
-        )
-        return start_epoch, float("inf"), [], [], []
-
-    raise RuntimeError(f"Unsupported checkpoint format: {resume_path}")
-
-
-def _save_checkpoint(
-    checkpoint_path,
-    epoch,
-    model,
-    optimizer,
-    scheduler,
-    scaler,
-    best_val_loss,
-    train_losses,
-    val_losses,
-    lr_history,
-):
+def _save_checkpoint(path, epoch, model, optimizer, scheduler, scaler, best_val_loss, train_losses, val_losses):
     torch.save(
         {
             "epoch": int(epoch),
@@ -349,380 +241,281 @@ def _save_checkpoint(
             "best_val_loss": float(best_val_loss),
             "train_losses": train_losses,
             "val_losses": val_losses,
-            "lr_history": lr_history,
         },
-        checkpoint_path,
+        path,
     )
 
 
-def train_model(
-    model,
-    train_loader,
-    val_loader,
-    test_loader,
-    x_test_np,
-    x_test_freq,
-    epochs,
-    lr,
-    device,
-    best_model_path,
-    save_dir=None,
-    run_suffix="",
-    resume_path="",
-):
-    model = _move_model_devices(model, device)
+def _load_resume(path, model, optimizer, scheduler, scaler, device):
+    ckpt = torch.load(path, map_location=device)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    if isinstance(ckpt, dict) and "model_state_dict" in ckpt:
+        model.load_state_dict(ckpt["model_state_dict"])
+        if "optimizer_state_dict" in ckpt:
+            optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+        if "scheduler_state_dict" in ckpt:
+            scheduler.load_state_dict(ckpt["scheduler_state_dict"])
+        if ckpt.get("scaler_state_dict") is not None:
+            scaler.load_state_dict(ckpt["scaler_state_dict"])
+        return int(ckpt.get("epoch", -1)) + 1, float(ckpt.get("best_val_loss", float("inf"))), list(
+            ckpt.get("train_losses", [])
+        ), list(ckpt.get("val_losses", []))
+
+    if isinstance(ckpt, dict):
+        model.load_state_dict(ckpt)
+        parsed_epoch = _parse_epoch_from_filename(path)
+        start_epoch = parsed_epoch if parsed_epoch is not None else 0
+        return start_epoch, float("inf"), [], []
+
+    raise RuntimeError(f"Unsupported checkpoint format: {path}")
+
+
+def _find_latest_resume_candidate(save_dir):
+    patterns = [
+        "checkpoint_last_*.pth",
+        "checkpoint_epoch_*.pth",
+        "model_epoch_*.pth",
+        "best_model_quantum_gpu_*.pth",
+    ]
+    candidates = []
+    for pat in patterns:
+        candidates.extend(save_dir.glob(pat))
+    if not candidates:
+        return ""
+    latest = sorted(candidates, key=lambda p: p.stat().st_mtime, reverse=True)[0]
+    return str(latest)
+
+
+def _make_loaders(x_train, x_val, x_test, batch_size):
+    train_loader = DataLoader(TensorDataset(torch.FloatTensor(x_train)), batch_size=batch_size, shuffle=True, pin_memory=True)
+    val_loader = DataLoader(TensorDataset(torch.FloatTensor(x_val)), batch_size=batch_size, shuffle=False, pin_memory=True)
+    test_loader = DataLoader(TensorDataset(torch.FloatTensor(x_test)), batch_size=batch_size, shuffle=False, pin_memory=True)
+    return train_loader, val_loader, test_loader
+
+
+def _append_epoch_metrics(metrics_csv_path, row):
+    file_exists = metrics_csv_path.exists()
+    with open(metrics_csv_path, "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=["epoch", "train_loss", "val_loss", "nmse_db", "rho", "checkpoint", "model"],
+        )
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow(row)
+
+
+def train_and_eval(args):
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is not available. This script requires a CUDA GPU.")
+    device = torch.device("cuda:0")
+
+    save_dir = Path(args.outputdir).expanduser().resolve() if args.outputdir else DEFAULT_OUT_DIR
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    run_tag = args.run_tag.strip() if args.run_tag else time.strftime("%Y%m%d_%H%M%S")
+    suffix = f"{args.envir}_dim{args.encoded_dim}_{run_tag}"
+
+    model = _to_device(CsiNetQuantumCompensated(args.encoded_dim, args.alpha), device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.5)
     criterion = nn.MSELoss()
-    scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
+    scaler = torch.amp.GradScaler("cuda", enabled=True)
 
-    best_val_loss = float("inf")
+    best_model_path = save_dir / f"best_model_quantum_gpu_{suffix}.pth"
+    epoch_metrics_csv = save_dir / f"epoch_metrics_{suffix}.csv"
     train_losses = []
     val_losses = []
-    lr_history = []
+    best_val_loss = float("inf")
     start_epoch = 0
 
+    resume_path = ""
+    if args.resume_from:
+        resume_path = str(Path(args.resume_from).expanduser().resolve())
+    elif args.resume_latest:
+        resume_path = _find_latest_resume_candidate(save_dir)
+
     if resume_path:
-        print(f"Resuming training from: {resume_path}", flush=True)
-        start_epoch, best_val_loss, train_losses, val_losses, lr_history = _load_resume_state(
-            resume_path=resume_path,
-            model=model,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            scaler=scaler,
-            device=device,
+        if not Path(resume_path).exists():
+            raise FileNotFoundError(f"Resume file not found: {resume_path}")
+        print(f"Resuming from: {resume_path}", flush=True)
+        start_epoch, best_val_loss, train_losses, val_losses = _load_resume(
+            resume_path, model, optimizer, scheduler, scaler, device
         )
-        model = _move_model_devices(model, device)
-        print(f"Resume start epoch: {start_epoch + 1}/{epochs}", flush=True)
+        model = _to_device(model, device)
 
-    if start_epoch >= epochs:
-        print(
-            f"Checkpoint epoch ({start_epoch}) is already >= target epochs ({epochs}); nothing to train.",
-            flush=True,
-        )
-        return train_losses, val_losses, lr_history
+    x_train, x_val, x_test, x_test_freq = load_data(args.envir, args.data_path)
+    x_train = x_train[: args.train_samples]
+    x_val = x_val[: args.val_samples]
+    x_test = x_test[: args.test_samples]
+    x_test_freq = x_test_freq[: args.test_samples]
 
-    for epoch in range(start_epoch, epochs):
+    train_loader, val_loader, test_loader = _make_loaders(x_train, x_val, x_test, args.batch_size)
+
+    print(f"Device: {device}")
+    print(f"Quantum backend: {model.decoder.quantum_comp.backend}")
+    print(f"Save directory: {save_dir}")
+    print(f"Samples train/val/test: {len(train_loader.dataset)}/{len(val_loader.dataset)}/{len(test_loader.dataset)}")
+
+    for epoch in range(start_epoch, args.epochs):
         model.train()
-        train_loss = 0.0
-
+        train_loss_sum = 0.0
         for (data,) in train_loader:
             data = data.to(device, non_blocking=True)
             optimizer.zero_grad(set_to_none=True)
-
-            with torch.autocast(device_type=device.type, dtype=torch.float16, enabled=device.type == "cuda"):
+            with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=True):
                 output = model(data)
                 loss = criterion(output, data)
-
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
-            train_loss += loss.item()
-
-        avg_train_loss = train_loss / max(1, len(train_loader))
+            train_loss_sum += loss.item()
+        avg_train_loss = train_loss_sum / max(1, len(train_loader))
         train_losses.append(avg_train_loss)
 
         model.eval()
-        val_loss = 0.0
+        val_loss_sum = 0.0
         with torch.no_grad():
             for (data,) in val_loader:
                 data = data.to(device, non_blocking=True)
-                with torch.autocast(device_type=device.type, dtype=torch.float16, enabled=device.type == "cuda"):
+                with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=True):
                     output = model(data)
                     loss = criterion(output, data)
-                val_loss += loss.item()
-
-        avg_val_loss = val_loss / max(1, len(val_loader))
+                val_loss_sum += loss.item()
+        avg_val_loss = val_loss_sum / max(1, len(val_loader))
         val_losses.append(avg_val_loss)
 
-        # Compute test metrics each epoch (NMSE & rho if frequency data available)
-        test_outputs = []
+        outputs = []
         with torch.no_grad():
             for (data,) in test_loader:
                 data = data.to(device, non_blocking=True)
-                with torch.autocast(device_type=device.type, dtype=torch.float16, enabled=device.type == "cuda"):
+                with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=True):
                     out = model(data)
-                test_outputs.append(out.float().cpu().numpy())
-        x_hat = np.concatenate(test_outputs, axis=0)
+                outputs.append(out.float().cpu().numpy())
+        x_hat = np.concatenate(outputs, axis=0)
+        nmse_db, rho = calculate_nmse_rho(x_test, x_hat, x_test_freq)
 
-        epoch_metrics = {}
-        if x_test_freq is not None:
-            try:
-                nmse, rho = calculate_nmse_rho(x_test_np, x_hat, x_test_freq)
-                epoch_metrics["nmse_db"] = nmse
-                epoch_metrics["rho"] = rho
-            except Exception:
-                epoch_metrics["nmse_db"] = None
-                epoch_metrics["rho"] = None
-        else:
-            epoch_metrics["test_mse"] = float(np.mean((x_hat - x_test_np) ** 2))
-
-        # 每个 epoch 结束时都打印 NMSE 和 rho（无频域标签时显示 N/A）
-        nmse_value = epoch_metrics.get("nmse_db", None)
-        rho_value = epoch_metrics.get("rho", None)
-
-        nmse_str = f"{nmse_value:.2f} dB" if isinstance(nmse_value, (int, float)) else "N/A"
-        rho_str = f"{rho_value:.4f}" if isinstance(rho_value, (int, float)) else "N/A"
-
-        # Log epoch summary to console and to snapshot file if provided
-        current_lrs = [float(g.get("lr", 0.0)) for g in optimizer.param_groups]
-
-        metrics_str = f"NMSE: {nmse_str}, Rho: {rho_str}"
-        if "test_mse" in epoch_metrics:
-            metrics_str += f", Test MSE: {epoch_metrics['test_mse']:.6f}"
-
-        summary_line = (
-            f"Epoch [{epoch + 1}/{epochs}] "
-            f"Train Loss: {avg_train_loss:.6f} "
-            f"Val Loss: {avg_val_loss:.6f} "
-            f"LR: {current_lrs} "
-            f"{metrics_str}"
-        )
-        print(summary_line, flush=True)
-        if save_dir is not None:
-            try:
-                # 第一个 epoch 时覆盖写入，后续 epoch 追加
-                write_mode = "w" if epoch == 0 else "a"
-                with open(Path(save_dir) / "log_snapshot.txt", write_mode, encoding="utf-8") as f:
-                    f.write(time.strftime("%Y-%m-%d %H:%M:%S") + "\n")
-                    f.write(summary_line + "\n")
-                    f.write("----\n")
-            except Exception:
-                pass
         scheduler.step()
 
-        current_lrs = [float(g.get("lr", 0.0)) for g in optimizer.param_groups]
-        lr_history.append(current_lrs)
+        epoch_model_path = save_dir / f"model_epoch_{epoch + 1:03d}_{suffix}.pth"
+        checkpoint_epoch_path = save_dir / f"checkpoint_epoch_{epoch + 1:03d}_{suffix}.pth"
+        checkpoint_last_path = save_dir / f"checkpoint_last_{suffix}.pth"
+
+        torch.save(model.state_dict(), epoch_model_path)
+        _save_checkpoint(
+            checkpoint_epoch_path,
+            epoch,
+            model,
+            optimizer,
+            scheduler,
+            scaler,
+            best_val_loss,
+            train_losses,
+            val_losses,
+        )
+        _save_checkpoint(
+            checkpoint_last_path,
+            epoch,
+            model,
+            optimizer,
+            scheduler,
+            scaler,
+            best_val_loss,
+            train_losses,
+            val_losses,
+        )
 
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             torch.save(model.state_dict(), best_model_path)
-            print(f"Saved best model (epoch {epoch+1}): {best_model_path}", flush=True)
 
-        if save_dir is not None:
-            epoch_model_path = Path(save_dir) / f"model_epoch_{epoch + 1:03d}_{run_suffix}.pth"
-            checkpoint_epoch_path = Path(save_dir) / f"checkpoint_epoch_{epoch + 1:03d}_{run_suffix}.pth"
-            checkpoint_last_path = Path(save_dir) / f"checkpoint_last_{run_suffix}.pth"
-
-            torch.save(model.state_dict(), epoch_model_path)
-            _save_checkpoint(
-                checkpoint_path=checkpoint_epoch_path,
-                epoch=epoch,
-                model=model,
-                optimizer=optimizer,
-                scheduler=scheduler,
-                scaler=scaler,
-                best_val_loss=best_val_loss,
-                train_losses=train_losses,
-                val_losses=val_losses,
-                lr_history=lr_history,
-            )
-            _save_checkpoint(
-                checkpoint_path=checkpoint_last_path,
-                epoch=epoch,
-                model=model,
-                optimizer=optimizer,
-                scheduler=scheduler,
-                scaler=scaler,
-                best_val_loss=best_val_loss,
-                train_losses=train_losses,
-                val_losses=val_losses,
-                lr_history=lr_history,
-            )
-            print(f"Saved epoch model: {epoch_model_path}", flush=True)
-
-    return train_losses, val_losses, lr_history
-
-
-def make_sanity_loaders(batch_size=32, train_samples=64, val_samples=32, test_samples=32):
-    x_train = torch.rand(train_samples, IMG_CHANNELS, IMG_HEIGHT, IMG_WIDTH)
-    x_val = torch.rand(val_samples, IMG_CHANNELS, IMG_HEIGHT, IMG_WIDTH)
-    x_test = torch.rand(test_samples, IMG_CHANNELS, IMG_HEIGHT, IMG_WIDTH)
-
-    train_loader = DataLoader(TensorDataset(x_train), batch_size=batch_size, shuffle=True, pin_memory=True)
-    val_loader = DataLoader(TensorDataset(x_val), batch_size=batch_size, shuffle=False, pin_memory=True)
-    test_loader = DataLoader(TensorDataset(x_test), batch_size=batch_size, shuffle=False, pin_memory=True)
-    return train_loader, val_loader, test_loader, x_test.numpy(), None
-
-
-def run(args):
-    # 强制使用 GPU，否则报错
-    if not torch.cuda.is_available():
-        raise RuntimeError("CUDA is not available. This script requires a CUDA GPU.")
-    device = torch.device("cuda:0")
-    print(f"Using device: {device}")
-
-    model = CsiNetQuantumCompensated(encoded_dim=args.encoded_dim, alpha=args.alpha)
-    print(f"Quantum backend: {model.decoder.quantum_comp.backend}")
-
-    if args.sanity:
-        train_loader, val_loader, test_loader, x_test_np, x_test_freq = make_sanity_loaders(
-            batch_size=args.batch_size,
-            train_samples=args.sanity_train_samples,
-            val_samples=args.sanity_val_samples,
-            test_samples=args.sanity_test_samples,
+        _append_epoch_metrics(
+            epoch_metrics_csv,
+            {
+                "epoch": epoch + 1,
+                "train_loss": f"{avg_train_loss:.8f}",
+                "val_loss": f"{avg_val_loss:.8f}",
+                "nmse_db": f"{nmse_db:.6f}",
+                "rho": f"{rho:.6f}",
+                "checkpoint": str(checkpoint_epoch_path),
+                "model": str(epoch_model_path),
+            },
         )
-    else:
-        x_train, x_val, x_test, x_test_freq = load_data(args.envir, args.data_path)
-        # Optionally subset the real datasets to requested sizes
-        if getattr(args, "train_samples", 0) and args.train_samples > 0:
-            x_train = x_train[: args.train_samples]
-        if getattr(args, "val_samples", 0) and args.val_samples > 0:
-            x_val = x_val[: args.val_samples]
-        if getattr(args, "test_samples", 0) and args.test_samples > 0:
-            x_test = x_test[: args.test_samples]
 
-        x_train = torch.FloatTensor(x_train)
-        x_val = torch.FloatTensor(x_val)
-        x_test_tensor = torch.FloatTensor(x_test)
+        print(
+            f"Epoch [{epoch + 1}/{args.epochs}] "
+            f"Train {avg_train_loss:.6f} Val {avg_val_loss:.6f} "
+            f"NMSE {nmse_db:.2f} dB Rho {rho:.4f}",
+            flush=True,
+        )
 
-        train_loader = DataLoader(TensorDataset(x_train), batch_size=args.batch_size, shuffle=True, pin_memory=True)
-        val_loader = DataLoader(TensorDataset(x_val), batch_size=args.batch_size, shuffle=False, pin_memory=True)
-        test_loader = DataLoader(TensorDataset(x_test_tensor), batch_size=args.batch_size, shuffle=False, pin_memory=True)
-        x_test_np = x_test
+    if best_model_path.exists():
+        model.load_state_dict(torch.load(best_model_path, map_location=device))
+        model = _to_device(model, device)
 
-    # Determine save directory: priority --outputdir, then deprecated --output-dir,
-    # otherwise default out_10k_2.
-    out_arg = getattr(args, "outputdir", "") or getattr(args, "output_dir", "")
-    if out_arg and str(out_arg).strip():
-        save_dir = Path(out_arg).expanduser().resolve()
-    else:
-        save_dir = Path(__file__).resolve().parent / "out_10k_2"
-    save_dir.mkdir(parents=True, exist_ok=True)
-
-    run_tag = args.run_tag.strip() if args.run_tag else ""
-    if not run_tag:
-        run_tag = time.strftime("%Y%m%d_%H%M%S")
-
-    suffix = f"{args.envir}_dim{args.encoded_dim}_{run_tag}"
-    best_model_path = save_dir / f"best_model_quantum_gpu_{suffix}.pth"
-    resume_path = ""
-    if args.resume_from and args.resume_from.strip():
-        resume_path = str(Path(args.resume_from).expanduser().resolve())
-        if not Path(resume_path).exists():
-            raise FileNotFoundError(f"Resume file not found: {resume_path}")
-    elif args.auto_resume:
-        auto_path = save_dir / f"checkpoint_last_{suffix}.pth"
-        if auto_path.exists():
-            resume_path = str(auto_path)
-            print(f"Auto-resume checkpoint found: {resume_path}")
-        else:
-            print(f"Auto-resume checkpoint not found: {auto_path}. Starting fresh run.")
-
-    start = time.time()
-    train_losses, val_losses, lr_history = train_model(
-        model=model,
-        train_loader=train_loader,
-        val_loader=val_loader,
-        test_loader=test_loader,
-        x_test_np=x_test_np,
-        x_test_freq=x_test_freq,
-        epochs=args.epochs,
-        lr=args.lr,
-        device=device,
-        best_model_path=best_model_path,
-        save_dir=save_dir,
-        run_suffix=suffix,
-        resume_path=resume_path,
-    )
-    train_time = time.time() - start
-    print(f"Training time: {train_time:.2f}s")
-
-    model.load_state_dict(torch.load(best_model_path, map_location=device))
-    model = _move_model_devices(model, device)
     model.eval()
-
-    outputs = []
     infer_start = time.time()
+    outputs = []
     with torch.no_grad():
         for (data,) in test_loader:
             data = data.to(device, non_blocking=True)
-            with torch.autocast(device_type=device.type, dtype=torch.float16, enabled=device.type == "cuda"):
+            with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=True):
                 output = model(data)
             outputs.append(output.float().cpu().numpy())
-    infer_end = time.time()
-
+    infer_time = time.time() - infer_start
     x_hat = np.concatenate(outputs, axis=0)
-    inference_time_per_sample = (infer_end - infer_start) / x_hat.shape[0]
-    print(f"Inference time per sample: {inference_time_per_sample:.6f}s")
+    final_nmse, final_rho = calculate_nmse_rho(x_test, x_hat, x_test_freq)
 
-    metrics = {}
-    if x_test_freq is not None:
-        nmse, rho = calculate_nmse_rho(x_test_np, x_hat, x_test_freq)
-        metrics["nmse_db"] = nmse
-        metrics["cosine_similarity"] = rho
-        print(f"NMSE: {nmse:.2f} dB")
-        print(f"Cosine similarity: {rho:.4f}")
-    else:
-        sanity_mse = float(np.mean((x_hat - x_test_np) ** 2))
-        metrics["sanity_mse"] = sanity_mse
-        print(f"Sanity MSE: {sanity_mse:.6f}")
-
-    final_model_path = save_dir / f"csinet_quantum_gpu_{suffix}.pth"
-    train_loss_path = save_dir / f"train_loss_quantum_gpu_{suffix}.csv"
-    val_loss_path = save_dir / f"val_loss_quantum_gpu_{suffix}.csv"
-    lr_path = save_dir / f"lr_history_quantum_gpu_{suffix}.csv"
+    final_model_path = save_dir / f"final_model_quantum_gpu_{suffix}.pth"
+    train_loss_path = save_dir / f"train_loss_{suffix}.csv"
+    val_loss_path = save_dir / f"val_loss_{suffix}.csv"
+    summary_path = save_dir / f"run_summary_{suffix}.json"
 
     torch.save(model.state_dict(), final_model_path)
     np.savetxt(train_loss_path, train_losses, delimiter=",")
     np.savetxt(val_loss_path, val_losses, delimiter=",")
-    np.savetxt(lr_path, np.array(lr_history), delimiter=",")
 
     summary = {
         "args": vars(args),
         "device": str(device),
         "quantum_backend": model.decoder.quantum_comp.backend,
-        "train_time_sec": float(train_time),
-        "inference_time_per_sample_sec": float(inference_time_per_sample),
-        "train_samples": int(len(train_loader.dataset)),
-        "val_samples": int(len(val_loader.dataset)),
-        "test_samples": int(len(test_loader.dataset)),
+        "train_samples": len(train_loader.dataset),
+        "val_samples": len(val_loader.dataset),
+        "test_samples": len(test_loader.dataset),
         "best_model_path": str(best_model_path),
         "final_model_path": str(final_model_path),
-        "train_loss_csv": str(train_loss_path),
-        "val_loss_csv": str(val_loss_path),
-        "lr_history_csv": str(lr_path),
-        "metrics": metrics,
+        "epoch_metrics_csv": str(epoch_metrics_csv),
+        "final_nmse_db": float(final_nmse),
+        "final_rho": float(final_rho),
+        "inference_time_per_sample_sec": float(infer_time / max(1, len(test_loader.dataset))),
     }
-
-    summary_path = save_dir / f"run_summary_quantum_gpu_{suffix}.json"
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
 
-    print(f"Saved best model: {best_model_path}")
-    print(f"Saved final model: {final_model_path}")
-    print(f"Saved train loss: {train_loss_path}")
-    print(f"Saved val loss: {val_loss_path}")
-    print(f"Saved lr history: {lr_path}")
-    print(f"Saved run summary: {summary_path}")
+    print(f"Final NMSE: {final_nmse:.2f} dB")
+    print(f"Final Rho: {final_rho:.4f}")
+    print(f"Saved summary: {summary_path}")
 
 
 def build_parser():
-    parser = argparse.ArgumentParser(description="CsiNet quantum-classical hybrid (GPU-oriented)")
-    parser.add_argument("--envir", type=str, default="indoor", choices=["indoor", "outdoor"])
-    parser.add_argument("--data-path", type=str, default="/home/luxian/DataSpace/csinet/data")
-    parser.add_argument("--encoded-dim", type=int, default=32, choices=sorted(set(COMPRESSION_RATES.values())))
+    parser = argparse.ArgumentParser(description="Refactored CsiNet quantum-compensated training")
+    parser.add_argument("--envir", type=str, default="outdoor", choices=["indoor", "outdoor"])
+    parser.add_argument("--data-path", type=str, default=DEFAULT_DATA_PATH)
+    parser.add_argument("--encoded-dim", type=int, default=32, choices=[32, 64, 128, 512])
     parser.add_argument("--alpha", type=float, default=0.25)
     parser.add_argument("--lr", type=float, default=5e-3)
     parser.add_argument("--batch-size", type=int, default=200)
     parser.add_argument("--epochs", type=int, default=20)
-    parser.add_argument("--output-dir", type=str, default="", help="(deprecated) output directory; prefer --outputdir")
-    parser.add_argument("--outputdir", type=str, default="", help="output directory for saved artifacts")
+    parser.add_argument("--train-samples", type=int, default=10000)
+    parser.add_argument("--val-samples", type=int, default=3000)
+    parser.add_argument("--test-samples", type=int, default=2000)
+    parser.add_argument("--outputdir", type=str, default=str(DEFAULT_OUT_DIR))
     parser.add_argument("--run-tag", type=str, default="")
-    parser.add_argument("--resume-from", type=str, default="", help="path to checkpoint/model file to resume training")
-    parser.add_argument("--auto-resume", action="store_true", help="resume from checkpoint_last_<suffix>.pth in save dir")
-    parser.add_argument("--train-samples", type=int, default=0, help="number of training samples to use (0=all)")
-    parser.add_argument("--val-samples", type=int, default=0, help="number of validation samples to use (0=all)")
-    parser.add_argument("--test-samples", type=int, default=0, help="number of test samples to use (0=all)")
-
-    # 快速验证入口，避免完整数据训练耗时。
-    parser.add_argument("--sanity", action="store_true")
-    parser.add_argument("--sanity-train-samples", type=int, default=64)
-    parser.add_argument("--sanity-val-samples", type=int, default=32)
-    parser.add_argument("--sanity-test-samples", type=int, default=32)
+    parser.add_argument("--resume-from", type=str, default="", help="Resume from a specific checkpoint/model path")
+    parser.add_argument("--resume-latest", action="store_true", help="Resume from the newest checkpoint/model in outputdir")
     return parser
 
 
 if __name__ == "__main__":
-    run(build_parser().parse_args())
+    args = build_parser().parse_args()
+    train_and_eval(args)

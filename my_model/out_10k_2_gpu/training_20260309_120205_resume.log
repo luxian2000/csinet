@@ -1,0 +1,23 @@
+Using device: cuda:0
+Quantum backend: lightning.gpu
+Save directory: /home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu
+Resuming training from: /home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu/checkpoint_last_outdoor_dim32_outdoor_resume_20260309_120205.pth
+Resume start epoch: 2/1
+Checkpoint epoch (1) is already >= target epochs (1); nothing to train.
+Training time: 0.66s
+Traceback (most recent call last):
+  File "/home/luxian/GitSpace/csinet/my_model/compensation_gpu_2.py", line 775, in <module>
+    run(args)
+  File "/home/luxian/GitSpace/csinet/my_model/compensation_gpu_2.py", line 651, in run
+    model.load_state_dict(torch.load(best_model_path, map_location=device))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luxian/anaconda3/envs/penny/lib/python3.11/site-packages/torch/serialization.py", line 1500, in load
+    with _open_file_like(f, "rb") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luxian/anaconda3/envs/penny/lib/python3.11/site-packages/torch/serialization.py", line 768, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luxian/anaconda3/envs/penny/lib/python3.11/site-packages/torch/serialization.py", line 749, in __init__
+    super().__init__(open(name, mode))  # noqa: SIM115
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu/best_model_quantum_gpu_outdoor_dim32_20260310_173150.pth'
