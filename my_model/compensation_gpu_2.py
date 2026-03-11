@@ -4,6 +4,7 @@ import json
 import re
 import time
 from pathlib import Path
+from datetime import datetime
 
 import numpy as np
 import pennylane as qml
@@ -491,6 +492,20 @@ def train_and_eval(args):
     }
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
+
+    # Append evaluation result to a human-readable markdown file for later reference
+    eval_md_path = save_dir / "evaluation.md"
+    model_used = str(best_model_path) if best_model_path.exists() else str(final_model_path)
+    with open(eval_md_path, "a", encoding="utf-8") as f:
+        f.write(f"## Evaluation {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+        f.write(f"- Run: {suffix}\n")
+        f.write(f"- Model: {model_used}\n")
+        f.write(f"- Test samples: {len(test_loader.dataset)}\n")
+        f.write(f"- Final NMSE (dB): {final_nmse:.6f}\n")
+        f.write(f"- Final Rho: {final_rho:.6f}\n")
+        f.write(f"- Inference time per sample (s): {infer_time / max(1, len(test_loader.dataset)):.6e}\n")
+        f.write(f"- Summary JSON: {summary_path}\n\n")
+        f.write("---\n\n")
 
     print(f"Final NMSE: {final_nmse:.2f} dB")
     print(f"Final Rho: {final_rho:.4f}")

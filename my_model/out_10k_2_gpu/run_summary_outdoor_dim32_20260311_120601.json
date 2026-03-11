@@ -1,0 +1,29 @@
+{
+  "args": {
+    "envir": "outdoor",
+    "data_path": "/home/luxian/DataSpace/csinet/data",
+    "encoded_dim": 32,
+    "alpha": 0.25,
+    "lr": 0.005,
+    "batch_size": 200,
+    "epochs": 0,
+    "train_samples": 10000,
+    "val_samples": 3000,
+    "test_samples": 2000,
+    "outputdir": "/home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu",
+    "run_tag": "",
+    "resume_from": "",
+    "resume_latest": true
+  },
+  "device": "cuda:0",
+  "quantum_backend": "lightning.gpu",
+  "train_samples": 10000,
+  "val_samples": 3000,
+  "test_samples": 2000,
+  "best_model_path": "/home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu/best_model_quantum_gpu_outdoor_dim32_20260311_120601.pth",
+  "final_model_path": "/home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu/final_model_quantum_gpu_outdoor_dim32_20260311_120601.pth",
+  "epoch_metrics_csv": "/home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu/epoch_metrics_outdoor_dim32_20260311_120601.csv",
+  "final_nmse_db": 0.000419850111939013,
+  "final_rho": 0.03862692025420574,
+  "inference_time_per_sample_sec": 0.12845413303375244
+}
