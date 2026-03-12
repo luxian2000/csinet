@@ -22,3 +22,15 @@
 
 ---
 
+## Evaluation 2026-03-12 12:35:24
+
+- Run: outdoor_dim32_20260312_100123
+- Model: /home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu/best_model_quantum_gpu_outdoor_dim32_20260312_100123.pth
+- Test samples: 2000
+- Final NMSE (dB): 0.000079
+- Final Rho: 0.051262
+- Inference time per sample (s): 1.304161e-01
+- Summary JSON: /home/luxian/GitSpace/csinet/my_model/out_10k_2_gpu/run_summary_outdoor_dim32_20260312_100123.json
+
+---
+
