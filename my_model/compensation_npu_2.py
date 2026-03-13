@@ -209,17 +209,12 @@ class CsiNetQuantumCompensated(nn.Module):
         return x_hat
 
 
-def load_data(envir="indoor", data_path="/home/luxian/DataSpace/csinet/data"):
-    if envir == "indoor":
-        x_train = sio.loadmat(f"{data_path}/DATA_Htrainin.mat")["HT"].astype(np.float32)
-        x_val = sio.loadmat(f"{data_path}/DATA_Hvalin.mat")["HT"].astype(np.float32)
-        x_test = sio.loadmat(f"{data_path}/DATA_Htestin.mat")["HT"].astype(np.float32)
-        x_test_freq = sio.loadmat(f"{data_path}/DATA_HtestFin_all.mat")["HF_all"].astype(np.complex128)
-    else:
-        x_train = sio.loadmat(f"{data_path}/DATA_Htrainout.mat")["HT"].astype(np.float32)
-        x_val = sio.loadmat(f"{data_path}/DATA_Hvalout.mat")["HT"].astype(np.float32)
-        x_test = sio.loadmat(f"{data_path}/DATA_Htestout.mat")["HT"].astype(np.float32)
-        x_test_freq = sio.loadmat(f"{data_path}/DATA_HtestFout_all.mat")["HF_all"].astype(np.complex128)
+def load_data(data_path="/root/work/luxian/csinet/data"):
+    # 所有数据统一使用 outdoor 数据集
+    x_train = sio.loadmat(f"{data_path}/DATA_Htrainout.mat")["HT"].astype(np.float32)
+    x_val = sio.loadmat(f"{data_path}/DATA_Hvalout.mat")["HT"].astype(np.float32)
+    x_test = sio.loadmat(f"{data_path}/DATA_Htestout.mat")["HT"].astype(np.float32)
+    x_test_freq = sio.loadmat(f"{data_path}/DATA_HtestFout_all.mat")["HF_all"].astype(np.complex128)
 
     def preprocess(data):
         bs = data.shape[0]
@@ -270,9 +265,26 @@ def _move_model_devices(model, device):
 
 
 def _amp_context(device):
-    if device.type == "cuda":
-        return torch.autocast(device_type="cuda", dtype=torch.float16)
+    # NPU-only runtime: keep full precision and avoid CUDA-specific AMP checks.
     return nullcontext()
+
+
+class _NoOpGradScaler:
+    """Fallback scaler for environments without amp GradScaler support."""
+
+    def scale(self, loss):
+        return loss
+
+    def step(self, optimizer):
+        optimizer.step()
+
+    def update(self):
+        return None
+
+
+def _build_grad_scaler(device):
+    # NPU-only runtime: disable scaler to avoid CUDA/AMP dependency.
+    return _NoOpGradScaler()
 
 
 def train_model(model, train_loader, val_loader, test_loader, x_test_np, x_test_freq, epochs, lr, device, best_model_path, save_dir=None):
@@ -281,7 +293,7 @@ def train_model(model, train_loader, val_loader, test_loader, x_test_np, x_test_
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.5)
     criterion = nn.MSELoss()
-    scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
+    scaler = _build_grad_scaler(device)
 
     best_val_loss = float("inf")
     train_losses = []
@@ -422,7 +434,7 @@ def run(args):
             test_samples=args.sanity_test_samples,
         )
     else:
-        x_train, x_val, x_test, x_test_freq = load_data(args.envir, args.data_path)
+        x_train, x_val, x_test, x_test_freq = load_data(args.data_path)
         # Optionally subset the real datasets to requested sizes
         if getattr(args, "train_samples", 0) and args.train_samples > 0:
             x_train = x_train[: args.train_samples]
@@ -543,8 +555,8 @@ def run(args):
 
 def build_parser():
     parser = argparse.ArgumentParser(description="CsiNet quantum-classical hybrid (NPU-oriented)")
-    parser.add_argument("--envir", type=str, default="indoor", choices=["indoor", "outdoor"])
-    parser.add_argument("--data-path", type=str, default="/home/luxian/DataSpace/csinet/data")
+    parser.add_argument("--envir", type=str, default="outdoor", choices=["outdoor"], help="data environment (outdoor only)")
+    parser.add_argument("--data-path", type=str, default="/root/work/luxian/csinet/data")
     parser.add_argument("--encoded-dim", type=int, default=32, choices=sorted(set(COMPRESSION_RATES.values())))
     parser.add_argument("--alpha", type=float, default=0.25)
     parser.add_argument("--lr", type=float, default=5e-3)
